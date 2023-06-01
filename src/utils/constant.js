@@ -1,11 +1,11 @@
 export default {
-  baseURL: "http://localhost:8081",
-  imBaseURL: "http://localhost:81",
-  webURL: "http://localhost",
-
   // baseURL: "https://poetize.cn/api",
   // imBaseURL: "https://poetize.cn/im",
   // webURL: "https://poetize.cn",
+
+  baseURL: process.env.VUE_APP_API_BASE_URL + "/api",
+  imBaseURL: process.env.VUE_APP_API_BASE_URL + "/im",
+  webURL: process.env.VUE_APP_API_BASE_URL,
 
   live2d_path: "https://cdn.jsdelivr.net/gh/stevenjoezhang/live2d-widget@latest/",
   cdnPath: "https://cdn.jsdelivr.net/gh/fghrsh/live2d_api/",
@@ -18,7 +18,7 @@ export default {
   //前后端定义的密钥，AES使用16位
   cryptojs_key: "aoligeimeimaobin",
   qiniuUrl: "https://upload.qiniup.com",
-  qiniuDownload: "$$$$七牛云下载地址",
+  qiniuDownload: "http://rviqbdo46.hd-bkt.clouddn.com/",
 
   favoriteVideo: "$$$$自己找一个视频链接作为百宝箱的封面",
 

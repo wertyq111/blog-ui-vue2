@@ -76,6 +76,10 @@ body {
     transform: rotate(360deg);
 }
 
+.user-avatar img {
+  width:100%
+}
+
 /* 滚动条 */
 ::-webkit-scrollbar {
     width: 8px;

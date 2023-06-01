@@ -31,7 +31,7 @@
             <div style="display: flex">
               <el-avatar style="margin-bottom: 10px" :size="36" :src="item.avatar"></el-avatar>
               <div style="margin-left: 10px;height: 36px;line-height: 36px;overflow: hidden;max-width: 80px">
-                {{ item.username }}
+                {{ item.nickname }}
               </div>
             </div>
             <div style="height: 36px;line-height: 36px">
@@ -174,7 +174,7 @@
         this.showAdmireDialog = true;
       },
       getAdmire() {
-        this.$http.get(this.$constant.baseURL + "/webInfo/getAdmire")
+        this.$http.get(this.$constant.baseURL + "/web-members/admires")
           .then((res) => {
             if (!this.$common.isEmpty(res.data)) {
               this.admires = res.data;
@@ -188,7 +188,7 @@
           });
       },
       getRecommendArticles() {
-        this.$http.post(this.$constant.baseURL + "/article/listArticle", this.pagination)
+        this.$http.post(this.$constant.baseURL + "/articles", this.pagination)
           .then((res) => {
             if (!this.$common.isEmpty(res.data)) {
               this.recommendArticles = res.data.records;

@@ -1,3 +1,4 @@
+import anime from 'animejs'
 export default function () {
   // 动画效果
   var canvasEl = document.querySelector("#mousedown");
