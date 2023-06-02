@@ -54,15 +54,14 @@
         }
 
         let user = {
-          account: this.account.trim(),
-          password: this.$common.encrypt(this.password.trim()),
-          isAdmin: true
+          username: this.account.trim(),
+          password: this.password.trim()
         };
 
         this.$http.post(this.$constant.baseURL + "/user/login", user, true, false)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              localStorage.setItem("adminToken", res.data.accessToken);
+            if (!this.$common.isEmpty(res)) {
+              localStorage.setItem("adminToken", res.accessToken);
               this.$store.commit("loadCurrentAdmin", res.data);
               this.account = "";
               this.password = "";
@@ -70,8 +69,9 @@
             }
           })
           .catch((error) => {
+            let errorResponse = error.response.data
             this.$message({
-              message: error.message,
+              message: errorResponse.message,
               type: "error"
             });
           });

@@ -7,6 +7,7 @@ import http from './utils/request'
 import common from './utils/common'
 import constant from './utils/constant'
 import mavonEditor from 'mavon-editor'
+import i18n from './lang'
 
 // 引入 jquery
 import $ from 'jquery'
@@ -57,5 +58,6 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
+  i18n,
   render: h => h(App)
 }).$mount('#app')
