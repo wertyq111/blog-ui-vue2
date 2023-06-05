@@ -220,7 +220,7 @@ export default {
       username: "",
       account: "",
       password: "",
-      phone: "15088631304",
+      phone: "",
       email: "",
       avatar: "",
       showDialog: false,
@@ -246,18 +246,22 @@ export default {
   methods: {
     /* 更换图形验证码 */
     changeCode() {
-      // 这里演示的验证码是后端返回base64格式的形式, 如果后端地址直接是图片请参考忘记密码页面
-      this.$http.post('/captcha', {'phone': this.phone}).then(res => {
-        console.log(res)
-        if (res) {
-          this.captcha = res.captcha_image_content
-          this.captcha_key = res.captcha_key
-        } else {
-          this.$message.error(res.message)
-        }
-      }).catch((e) => {
-        this.$message.error(e.message);
-      });
+      if(this.phone) {
+        // 这里演示的验证码是后端返回base64格式的形式, 如果后端地址直接是图片请参考忘记密码页面
+        this.$http.post('/captcha', {'phone': this.phone}).then(res => {
+          console.log(res)
+          if (res) {
+            this.captcha = res.captcha_image_content
+            this.captcha_key = res.captcha_key
+          } else {
+            this.$message.error(res.message)
+          }
+        }).catch((e) => {
+          console.log(e)
+          let errorResponse = e.response.data
+          this.$message.error(errorResponse.message);
+        });
+      }
     },
     addPicture(res) {
       this.avatar = res;
@@ -279,8 +283,8 @@ export default {
       }
 
       let user = {
-        account: this.account.trim(),
-        password: this.$common.encrypt(this.password.trim())
+        username: this.account.trim(),
+        password: this.password.trim()
       };
 
       this.$http.post(this.$constant.baseURL + "/user/login", user, false, false)
@@ -294,8 +298,9 @@ export default {
           }
         })
         .catch((error) => {
+          let errorResponse = error.response.data
           this.$message({
-            message: error.message,
+            message: errorResponse.message,
             type: "error"
           });
         });
