@@ -303,19 +303,11 @@
         }
       }
     },
-
     computed: {},
-
     watch: {},
-
-    created() {
+    mounted() {
       this.getWebInfo();
     },
-
-    mounted() {
-
-    },
-
     methods: {
       addBackgroundImage(res) {
         this.webInfo.backgroundImage = res;
@@ -330,7 +322,7 @@
         this.randomCover.push(res);
       },
       changeWebStatus(webInfo) {
-        this.$http.post(this.$constant.baseURL + "/webInfo/updateWebInfo", {
+        this.$http.post(this.$constant.baseURL + "/webInfo/edit", {
           id: webInfo.id,
           status: webInfo.status
         }, true)
@@ -349,21 +341,21 @@
           });
       },
       getWebInfo() {
-        this.$http.get(this.$constant.baseURL + "/admin/webInfo/getAdminWebInfo", {}, true)
+        this.$http.get(this.$constant.baseURL + "/web-info", {}, true)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.webInfo.id = res.data.id;
-              this.webInfo.webName = res.data.webName;
-              this.webInfo.webTitle = res.data.webTitle;
-              this.webInfo.footer = res.data.footer;
-              this.webInfo.backgroundImage = res.data.backgroundImage;
-              this.webInfo.avatar = res.data.avatar;
-              this.webInfo.waifuJson = res.data.waifuJson;
-              this.webInfo.status = res.data.status;
-              this.notices = JSON.parse(res.data.notices);
-              this.randomAvatar = JSON.parse(res.data.randomAvatar);
-              this.randomName = JSON.parse(res.data.randomName);
-              this.randomCover = JSON.parse(res.data.randomCover);
+            if (!this.$common.isEmpty(res)) {
+              this.webInfo.id = res.id;
+              this.webInfo.webName = res.webName;
+              this.webInfo.webTitle = res.webTitle;
+              this.webInfo.footer = res.footer;
+              this.webInfo.backgroundImage = res.backgroundImage;
+              this.webInfo.avatar = res.avatar;
+              this.webInfo.waifuJson = res.waifuJson;
+              this.webInfo.status = res.status;
+              this.notices = JSON.parse(res.notices);
+              this.randomAvatar = JSON.parse(res.randomAvatar);
+              this.randomName = JSON.parse(res.randomName);
+              this.randomCover = JSON.parse(res.randomCover);
             }
           })
           .catch((error) => {
@@ -479,7 +471,7 @@
           type: 'success',
           center: true
         }).then(() => {
-          this.$http.post(this.$constant.baseURL + "/webInfo/updateWebInfo", value, true)
+          this.$http.patch(this.$constant.baseURL + "/web-info/edit", value, true)
             .then((res) => {
               this.getWebInfo();
               this.$message({

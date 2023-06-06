@@ -5,7 +5,7 @@
         <el-avatar class="user-avatar" :size="50" :src="$store.state.webInfo.avatar"></el-avatar>
       </div>
       <div>
-        <el-input v-model="account">
+        <el-input v-model="username">
           <template slot="prepend">账号</template>
         </el-input>
       </div>
@@ -35,7 +35,7 @@
     data() {
       return {
         redirect: this.$route.query.redirect,
-        account: "",
+        username: "",
         password: ""
       }
     },
@@ -45,7 +45,7 @@
     },
     methods: {
       login() {
-        if (this.$common.isEmpty(this.account) || this.$common.isEmpty(this.password)) {
+        if (this.$common.isEmpty(this.username) || this.$common.isEmpty(this.password)) {
           this.$message({
             message: "请输入账号或密码！",
             type: "error"
@@ -54,7 +54,7 @@
         }
 
         let user = {
-          username: this.account.trim(),
+          username: this.username.trim(),
           password: this.password.trim()
         };
 
@@ -62,8 +62,10 @@
           .then((res) => {
             if (!this.$common.isEmpty(res)) {
               localStorage.setItem("adminToken", res.accessToken);
-              this.$store.commit("loadCurrentAdmin", res.data);
-              this.account = "";
+              //this.$store.commit("loadCurrentAdmin", res.data);
+              // 保存 member 信息到本地缓存中
+              this.$store.commit("loadCurrentMember", res.member);
+              this.username = "";
               this.password = "";
               this.$router.push({path: this.redirect});
             }

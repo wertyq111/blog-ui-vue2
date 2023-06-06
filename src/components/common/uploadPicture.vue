@@ -84,27 +84,19 @@
         }
       }
     },
-
     computed: {},
-
     watch: {},
-
-    created() {
-      if ((!this.isAdmin && !this.$common.isEmpty(this.$store.state.currentUser)) || (this.isAdmin && !this.$common.isEmpty(this.$store.state.currentAdmin))) {
+    mounted() {
+      if (!this.$common.isEmpty(this.$store.state.currentMember)) {
         this.getUpToken();
       }
     },
-
-    mounted() {
-
-    },
-
     methods: {
       getUpToken() {
-        this.$http.get(this.$constant.baseURL + "/qiniu/getUpToken", {}, this.isAdmin)
+        this.$http.get(this.$constant.baseURL + "/qiniu/up-token", {}, this.isAdmin)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.qiniuParam.token = res.data;
+            if (!this.$common.isEmpty(res)) {
+              this.qiniuParam.token = res.upToken;
             }
           })
           .catch((error) => {
@@ -135,7 +127,7 @@
       beforeUpload(file) {
         if (this.$common.isEmpty(this.qiniuParam.token)) {
           this.$message({
-            message: "上传出错！",
+            message: "上传出错！缺少必要值",
             type: "warning"
           });
           return false;
@@ -146,8 +138,8 @@
           suffix = file.name.substring(file.name.lastIndexOf('.'));
         }
 
-        this.qiniuParam.key = this.prefix + "/" + (!this.$common.isEmpty(this.$store.state.currentUser.username) ? (this.$store.state.currentUser.username.replace(/[^a-zA-Z]/g, '') + this.$store.state.currentUser.id) : (this.$store.state.currentAdmin.username.replace(/[^a-zA-Z]/g, '') + this.$store.state.currentAdmin.id)) + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix;
-      },
+        this.qiniuParam.key = this.prefix + "/" + this.$store.state.currentMember.user_id.replace(/[^a-zA-Z]/g, '') + this.$store.state.currentMember.id + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix;
+        },
       // 添加文件、上传成功和上传失败时都会被调用
       handleChange(file, fileList) {
         let flag = false;

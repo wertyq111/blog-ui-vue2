@@ -63,6 +63,9 @@ export default new Vuex.Store({
     loadCurrentAdmin(state, user) {
       state.currentAdmin = user;
     },
+    loadCurrentMember(state, member) {
+      state.currentMember = member;
+    },
     loadWebInfo(state, webInfo) {
       webInfo.webTitle = webInfo.webTitle.split('');
       webInfo.notices = JSON.parse(webInfo.notices);

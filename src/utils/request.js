@@ -10,21 +10,28 @@ axios.defaults.baseURL = constant.baseURL;
 
 // 添加请求拦截器
 axios.interceptors.request.use(function (config) {
-  // 在发送请求之前做些什么
+  if(localStorage.getItem("adminToken") || localStorage.getItem("userToken")) {
+    let token = localStorage.getItem("adminToken")
+      ? localStorage.getItem("adminToken") : localStorage.getItem("userToken")
+    config.headers.common['Authorization'] =  "Bearer " + token
+  }
   return config;
 }, function (error) {
-  // 对请求错误做些什么
   return Promise.reject(error);
 });
 
 // 添加响应拦截器
 axios.interceptors.response.use(function (response) {
-  if (response.data !== null && response.data.hasOwnProperty("code") && response.data.code !== 200) {
-    if (response.data.code === 300) {
+  if (response !== null && response.hasOwnProperty("status") && response.status !== 201) {
+    if (response.status === 300) {
       store.commit("loadCurrentUser", {});
-      localStorage.removeItem("userToken");
+      if(localStorage.getItem("userToken")) {
+        localStorage.removeItem("userToken");
+      }
       store.commit("loadCurrentAdmin", {});
-      localStorage.removeItem("adminToken");
+      if(localStorage.getItem("adminToken")) {
+        localStorage.removeItem("adminToken");
+      }
       window.location.href = constant.webURL + "/user";
     }
     return Promise.reject(new Error(response.data.message));
@@ -41,21 +48,23 @@ axios.interceptors.response.use(function (response) {
 
 
 export default {
-  post(url, params = {}, isAdmin = false, json = true) {
-    let config;
-    if (isAdmin) {
-      config = {
-        headers: {"Authorization": localStorage.getItem("adminToken")}
-      };
-    } else {
-      config = {
-        headers: {"Authorization": localStorage.getItem("userToken")}
-      };
-    }
-
+  patch(url, params = {}, isAdmin = false, json = true) {
     return new Promise((resolve, reject) => {
       axios
-        .post(url, json ? params : qs.stringify(params), config)
+        .patch(url, json ? params : qs.stringify(params))
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  },
+
+  post(url, params = {}, isAdmin = false, json = true) {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(url, json ? params : qs.stringify(params))
         .then(res => {
           resolve(res.data);
         })
@@ -66,17 +75,9 @@ export default {
   },
 
   get(url, params = {}, isAdmin = false) {
-    let headers;
-    if (isAdmin) {
-      headers = {"Authorization": localStorage.getItem("adminToken")};
-    } else {
-      headers = {"Authorization": localStorage.getItem("userToken")};
-    }
-
     return new Promise((resolve, reject) => {
       axios.get(url, {
         params: params,
-        headers: headers
       }).then(res => {
         resolve(res.data);
       }).catch(err => {
@@ -87,15 +88,10 @@ export default {
 
   upload(url, param, isAdmin = false) {
     let config;
-    if (isAdmin) {
-      config = {
-        headers: {"Authorization": localStorage.getItem("adminToken"), "Content-Type": "multipart/form-data"}
-      };
-    } else {
-      config = {
-        headers: {"Authorization": localStorage.getItem("userToken"), "Content-Type": "multipart/form-data"}
-      };
-    }
+
+    config = {
+      headers: { "Content-Type": "multipart/form-data"}
+    };
     return new Promise((resolve, reject) => {
       axios
         .post(url, param, config)

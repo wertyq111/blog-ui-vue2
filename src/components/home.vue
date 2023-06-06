@@ -373,8 +373,8 @@ export default {
     getWebInfo() {
       this.$http.get("/web-info")
         .then((res) => {
-          if (!this.$common.isEmpty(res.data)) {
-            this.$store.commit("loadWebInfo", res.data);
+          if (!this.$common.isEmpty(res)) {
+            this.$store.commit("loadWebInfo", res);
           }
         })
         .catch((error) => {

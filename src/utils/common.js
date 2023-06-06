@@ -145,10 +145,10 @@ export default {
       type: type,
       path: path,
       size: size,
-      mimeType: mimeType
+      mime_type: mimeType
     };
 
-    that.$http.post(that.$constant.baseURL + "/resource/saveResource", resource, isAdmin)
+    that.$http.patch(that.$constant.baseURL + "/resource/edit", resource, isAdmin)
       .catch((error) => {
         that.$message({
           message: error.message,
