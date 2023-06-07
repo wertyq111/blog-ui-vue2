@@ -293,7 +293,7 @@ export default {
       //如果滑动距离超过屏幕高度三分之一视为进入页面，背景改为白色
       let enter = scrollTop > window.innerHeight / 2;
       const top = scrollTop - oldScrollTop < 0;
-      let isShow = scrollTop - window.innerHeight > 30;
+      let isShow = scrollTop > 30;
       this.toolButton = isShow;
       if (isShow && !this.$common.mobile()) {
         if (window.innerHeight > 950) {

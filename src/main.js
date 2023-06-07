@@ -50,7 +50,7 @@ Vue.prototype.$wow = new WOW({
   animateClass: 'animated', //animation.css 动画的 class
   offset: 0, // 距离可视区域多少开始执行动画
   mobile: true, // 是否在移动设备上执行动画
-  live: true // 异步加载的内容是否有效
+  live: false // 异步加载的内容是否有效
 }).init()
 
 Vue.config.productionTip = false

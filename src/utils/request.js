@@ -5,11 +5,11 @@ import qs from "qs";
 
 import store from "../store";
 
-
 axios.defaults.baseURL = constant.baseURL;
 
 // 添加请求拦截器
 axios.interceptors.request.use(function (config) {
+  // 已登录的情况下请求 api 增加 token 头
   if(localStorage.getItem("adminToken") || localStorage.getItem("userToken")) {
     let token = localStorage.getItem("adminToken")
       ? localStorage.getItem("adminToken") : localStorage.getItem("userToken")
@@ -22,7 +22,7 @@ axios.interceptors.request.use(function (config) {
 
 // 添加响应拦截器
 axios.interceptors.response.use(function (response) {
-  if (response !== null && response.hasOwnProperty("status") && response.status !== 201) {
+  if (response !== null && response.hasOwnProperty("status") && [200, 201].indexOf(response.status) < 0) {
     if (response.status === 300) {
       store.commit("loadCurrentUser", {});
       if(localStorage.getItem("userToken")) {
@@ -36,11 +36,20 @@ axios.interceptors.response.use(function (response) {
     }
     return Promise.reject(new Error(response.data.message));
   } else {
+    // 如果Headers中存在Authorization字段值就将新的 token 进行保存
+    if(response != null && response.headers.hasOwnProperty("authorization")) {
+      let newToken = response.headers.authorization.replace("Bearer", '').trim()
+      if(localStorage.getItem("userToken")) {
+        localStorage.setItem("userToken", newToken);
+      } else if(localStorage.getItem("adminToken")) {
+        localStorage.setItem("adminToken", newToken);
+      }
+    }
     return response;
   }
 }, function (error) {
   // 对响应错误做点什么
-  return Promise.reject(error);
+  return Promise.reject(error.response.data);
 });
 
 // 当data为URLSearchParams对象时设置为application/x-www-form-urlencoded;charset=utf-8

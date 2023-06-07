@@ -322,10 +322,8 @@
         this.randomCover.push(res);
       },
       changeWebStatus(webInfo) {
-        this.$http.post(this.$constant.baseURL + "/webInfo/edit", {
-          id: webInfo.id,
-          status: webInfo.status
-        }, true)
+        let status = webInfo.status ? 1 : 0
+        this.$http.patch(this.$constant.baseURL + "/web-info/edit", {status: status}, true)
           .then((res) => {
             this.getWebInfo();
             this.$message({
@@ -351,7 +349,7 @@
               this.webInfo.backgroundImage = res.backgroundImage;
               this.webInfo.avatar = res.avatar;
               this.webInfo.waifuJson = res.waifuJson;
-              this.webInfo.status = res.status;
+              this.webInfo.status = !!res.status;
               this.notices = JSON.parse(res.notices);
               this.randomAvatar = JSON.parse(res.randomAvatar);
               this.randomName = JSON.parse(res.randomName);
