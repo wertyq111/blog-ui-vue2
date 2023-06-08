@@ -2,12 +2,12 @@
   <div>
     <div>
       <div class="handle-box">
-        <el-select v-model="pagination.userType" placeholder="用户类型" class="handle-select mrb10">
-          <el-option key="1" label="Boss" :value="0"></el-option>
-          <el-option key="2" label="管理员" :value="1"></el-option>
-          <el-option key="3" label="普通用户" :value="2"></el-option>
+        <el-select v-model="pagination.roleId" placeholder="用户类型" class="handle-select mrb10">
+          <el-option key="1" label="Boss" :value="1"></el-option>
+          <el-option key="2" label="管理员" :value="2"></el-option>
+          <el-option key="3" label="普通用户" :value="3"></el-option>
         </el-select>
-        <el-select v-model="pagination.userStatus" placeholder="用户状态" class="handle-select mrb10">
+        <el-select v-model="pagination.status" placeholder="用户状态" class="handle-select mrb10">
           <el-option key="1" label="启用" :value="true"></el-option>
           <el-option key="2" label="禁用" :value="false"></el-option>
         </el-select>
@@ -18,37 +18,37 @@
       <el-table :data="users" border class="table" header-cell-class-name="table-header">
         <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
         <el-table-column prop="username" label="用户名" align="center"></el-table-column>
-        <el-table-column prop="phoneNumber" label="手机号" align="center"></el-table-column>
+        <el-table-column prop="phone" label="手机号" align="center"></el-table-column>
         <el-table-column prop="email" label="邮箱" align="center"></el-table-column>
         <el-table-column label="赞赏" width="100" align="center">
           <template slot-scope="scope">
-            <el-input size="medium" maxlength="30" v-model="scope.row.admire"
-                      @blur="changeUserAdmire(scope.row)"></el-input>
+            <el-input size="medium" maxlength="30" v-model="scope.row.member.admire"
+                      @blur="changeMemberAdmire(scope.row.member)"></el-input>
           </template>
         </el-table-column>
         <el-table-column label="用户状态" align="center">
           <template slot-scope="scope">
-            <el-tag :type="scope.row.userStatus === false ? 'danger' : 'success'"
+            <el-tag :type="scope.row.status ? 'success' : 'danger'"
                     disable-transitions>
-              {{scope.row.userStatus === false ? '禁用' : '启用'}}
+              {{scope.row.status ? '启用' : '禁用'}}
             </el-tag>
-            <el-switch @click.native="changeUserStatus(scope.row)" v-model="scope.row.userStatus"></el-switch>
+            <el-switch @click.native="changeUserStatus(scope.row)" v-model="scope.row.status"></el-switch>
           </template>
         </el-table-column>
         <el-table-column label="头像" align="center">
           <template slot-scope="scope">
-            <el-image lazy class="table-td-thumb" :src="scope.row.avatar" fit="cover"></el-image>
+            <el-image lazy class="table-td-thumb" :src="scope.row.member.avatar" fit="cover"></el-image>
           </template>
         </el-table-column>
         <el-table-column label="性别" align="center">
           <template slot-scope="scope">
             <el-tag type="success"
-                    v-if="scope.row.gender === 1"
+                    v-if="scope.row.member.gender === 1"
                     disable-transitions>
               男
             </el-tag>
             <el-tag type="success"
-                    v-else-if="scope.row.gender === 2"
+                    v-else-if="scope.row.member.gender === 2"
                     disable-transitions>
               女
             </el-tag>
@@ -59,30 +59,15 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="introduction" label="简介" align="center"></el-table-column>
+        <el-table-column prop="member.intro" label="简介" align="center"></el-table-column>
         <el-table-column label="用户类型" width="100" align="center">
           <template slot-scope="scope">
             <el-tag type="success"
-                    v-if="scope.row.userType === 0"
+                    v-for="role in scope.row.roles" :key="role.id"
                     style="cursor: pointer"
                     @click.native="editUser(scope.row)"
-                    disable-transitions>
-              Boss
-            </el-tag>
-            <el-tag type="success"
-                    v-else-if="scope.row.userType === 1"
-                    style="cursor: pointer"
-                    @click.native="editUser(scope.row)"
-                    disable-transitions>
-              管理员
-            </el-tag>
-            <el-tag type="success"
-                    v-else
-                    style="cursor: pointer"
-                    @click.native="editUser(scope.row)"
-                    disable-transitions>
-              普通用户
-            </el-tag>
+                    disable-transitions
+            >{{role.name}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="注册时间" align="center"></el-table-column>
@@ -106,10 +91,10 @@
                destroy-on-close
                center>
       <div class="myCenter">
-        <el-radio-group v-model="changeUser.userType">
-          <el-radio-button :label="0">Boss</el-radio-button>
-          <el-radio-button :label="1">管理员</el-radio-button>
-          <el-radio-button :label="2">普通用户</el-radio-button>
+        <el-radio-group v-model="changeUser.roleId">
+          <el-radio-button :label="1">超级管理员</el-radio-button>
+          <el-radio-button :label="2">管理员</el-radio-button>
+          <el-radio-button :label="3">普通用户</el-radio-button>
         </el-radio-group>
       </div>
 
@@ -131,13 +116,14 @@
           size: 10,
           total: 0,
           searchKey: "",
-          userStatus: null,
-          userType: null
+          status: null,
+          roleId: null,
+          include: ['member', 'roles']
         },
         users: [],
         changeUser: {
           id: null,
-          userType: null
+          roleId: null
         },
         editVisible: false
       }
@@ -161,17 +147,17 @@
           size: 10,
           total: 0,
           searchKey: "",
-          userStatus: null,
-          userType: null
+          status: null,
+          roleId: null
         }
         this.getUsers();
       },
       getUsers() {
-        this.$http.post(this.$constant.baseURL + "/admin/user/list", this.pagination, true)
+        this.$http.get(this.$constant.baseURL + "/users/list", this.pagination, true)
           .then((res) => {
             if (!this.$common.isEmpty(res.data)) {
-              this.users = res.data.records;
-              this.pagination.total = res.data.total;
+              this.users = res.data;
+              this.pagination.total = res.meta.total;
             }
           })
           .catch((error) => {
@@ -182,11 +168,12 @@
           });
       },
       changeUserStatus(user) {
-        this.$http.get(this.$constant.baseURL + "/admin/user/changeUserStatus", {
-          userId: user.id,
-          flag: user.userStatus
+        this.$http.patch(this.$constant.baseURL + "/users/status", {
+          id: user.id,
+          status: user.status
         }, true)
           .then((res) => {
+            user.status = res.status
             this.$message({
               message: "修改成功！",
               type: "success"
@@ -199,17 +186,17 @@
             });
           });
       },
-      changeUserAdmire(user) {
-        if (!this.$common.isEmpty(user.admire)) {
+      changeMemberAdmire(member) {
+        if (!this.$common.isEmpty(member.admire)) {
           this.$confirm('确认保存？', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'success',
             center: true
           }).then(() => {
-            this.$http.get(this.$constant.baseURL + "/admin/user/changeUserAdmire", {
-              userId: user.id,
-              admire: user.admire
+            this.$http.patch(this.$constant.baseURL + "/member/admire", {
+              id: member.id,
+              admire: member.admire
             }, true)
               .then((res) => {
                 this.$message({
@@ -233,7 +220,7 @@
       },
       editUser(user) {
         this.changeUser.id = user.id;
-        this.changeUser.userType = user.userType;
+        this.changeUser.roleId = user.roleId;
         this.editVisible = true;
       },
       handlePageChange(val) {
@@ -248,14 +235,14 @@
       handleClose() {
         this.changeUser = {
           id: null,
-          userType: null
+          roleId: null
         };
         this.editVisible = false;
       },
       saveEdit() {
-        this.$http.get(this.$constant.baseURL + "/admin/user/changeUserType", {
+        this.$http.patch(this.$constant.baseURL + "/user/role", {
           userId: this.changeUser.id,
-          userType: this.changeUser.userType
+          roleId: this.changeUser.roleId
         }, true)
           .then((res) => {
             this.handleClose();
