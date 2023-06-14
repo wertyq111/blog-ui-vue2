@@ -40,7 +40,7 @@
         <div class="page-container-wrap">
           <div class="page-container">
             <div class="aside-content" v-if="showAside">
-              <myAside @selectSort="selectSort"></myAside>
+              <myAside @selectCategories="selectCategories"></myAside>
             </div>
             <div class="recent-posts">
               <div class="announcement background-opacity">
@@ -99,7 +99,8 @@ export default {
         size: 10,
         total: 0,
         searchKey: "",
-        sortId: null
+        categoryId: null,
+        include:["member", "category", "label"]
       },
       guShi: {
         "content": "",
@@ -122,13 +123,13 @@ export default {
   },
 
   methods: {
-    async selectSort(sort) {
+    async selectCategories(category) {
       this.pagination = {
         current: 1,
         size: 10,
         total: 0,
         searchKey: "",
-        sortId: sort.id
+        categoryId: category.id
       };
       this.articles = [];
       await this.getArticles();
@@ -150,7 +151,6 @@ export default {
         .then((res) => {
           if (!this.$common.isEmpty(res)) {
             this.articles = this.articles.concat(res.data);
-            console.log(this.articles)
             this.pagination.total = res.meta.total;
           }
         })

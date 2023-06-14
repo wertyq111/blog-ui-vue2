@@ -11,7 +11,7 @@
         </div>
         <div class="blog-info-box">
           <span>分类</span>
-          <span class="blog-info-num">{{ sortInfo.length }}</span>
+          <span class="blog-info-num">{{ categoryInfo.length }}</span>
         </div>
       </div>
       <a class="collection-btn" @click="showTip()">
@@ -46,14 +46,14 @@
     </div>
 
     <!-- 速览 -->
-    <div v-for="(category, index) in sortInfo"
-         @click="selectSort(category)"
+    <div v-for="(category, index) in categoryInfo"
+         @click="selectCategories(category)"
          :key="index"
-         :style="{background: $constant.sortColor[index % $constant.sortColor.length]}"
+         :style="{background: $constant.categoryColor[index % $constant.categoryColor.length]}"
          class="shadow-box-mini background-opacity wow"
          style="position: relative;padding: 20px 25px 40px;border-radius: 10px;animation: hideToShow 1s ease-in-out;margin-top: 40px;cursor: pointer;color: var(--white)">
       <div>速览</div>
-      <div class="sort-name">
+      <div class="category-name">
         {{category.name}}
       </div>
       <div style="font-weight: bold;margin-top: 15px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden">
@@ -68,9 +68,9 @@
         <i class="el-icon-folder-opened card-content2-icon"></i>
         <span>分类</span>
       </div>
-      <div v-for="(category, index) in sortInfo"
+      <div v-for="(category, index) in categoryInfo"
            :key="index"
-           class="post-sort"
+           class="post-category"
            @click="$router.push({path: '/category', query: {id: category.id}})">
         <div>
           <span v-for="(s, i) in category.name.split('')" :key="i">{{ s }}</span>
@@ -150,8 +150,8 @@
       webInfo() {
         return this.$store.state.webInfo;
       },
-      sortInfo() {
-        return this.$store.state.sortInfo;
+      categoryInfo() {
+        return this.$store.state.categoryInfo;
       }
     },
     created() {
@@ -159,11 +159,11 @@
       this.getAdmire();
     },
     methods: {
-      selectSort(sort) {
-        this.$emit("selectSort", sort);
+      selectCategories(category) {
+        this.$emit("selectCategories", category);
       },
       showAdmire() {
-        if (this.$common.isEmpty(this.$store.state.currentUser)) {
+        if (this.$common.isEmpty(this.$store.state.currentMember)) {
           this.$message({
             message: "请先登录！",
             type: "error"
@@ -178,6 +178,7 @@
           .then((res) => {
             if (!this.$common.isEmpty(res)) {
               this.admires = res;
+              console.log(this.admires[0].avatar)
             }
           })
           .catch((error) => {
@@ -332,21 +333,21 @@
     font-size: 12px;
   }
 
-  .post-sort {
+  .post-category {
     border-radius: 1rem;
     margin-bottom: 15px;
     line-height: 30px;
     transition: all 0.3s;
   }
 
-  .post-sort:hover {
+  .post-category:hover {
     background: var(--themeBackground);
     padding: 2px 15px;
     cursor: pointer;
     color: var(--white);
   }
 
-  .sort-name {
+  .category-name {
     font-weight: bold;
     font-size: 25px;
     margin-top: 30px;
@@ -355,7 +356,7 @@
     overflow: hidden;
   }
 
-  .sort-name:after {
+  .category-name:after {
     top: 98px;
     width: 22px;
     left: 26px;

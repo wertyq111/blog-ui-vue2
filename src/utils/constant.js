@@ -48,7 +48,7 @@ export default {
   before_color_2: "rgb(131, 123, 199)",
   after_color_2: "linear-gradient(45deg, #f43f3b, #ec008c)",
 
-  sortColor: ["linear-gradient(to right, #358bff, #15c6ff)",
+  categoryColor: ["linear-gradient(to right, #358bff, #15c6ff)",
     "linear-gradient(to right, #18e7ae, #1eebeb)",
     "linear-gradient(to right, #ff6655, #ffbf37)",
     "linear-gradient(120deg, rgba(255, 39, 232, 1) 0%, rgba(255, 128, 0, 1) 100%)",

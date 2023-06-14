@@ -31,10 +31,10 @@
             </li>
 
             <!--            <li v-for="(menu, index) in $store.getters.navigationBar"-->
-            <!--                @click="$router.push({path: '/sort', query: {sortId: menu.id, labelId: menu.labels[0].id}})"-->
+            <!--                @click="$router.push({path: '/category', query: {id: menu.id, labelId: menu.labels[0].id}})"-->
             <!--                :key="index">-->
             <!--              <div class="my-menu">-->
-            <!--                📒 <span>{{ menu.sortName }}</span>-->
+            <!--                📒 <span>{{ menu.name }}</span>-->
             <!--              </div>-->
             <!--            </li>-->
 
@@ -49,13 +49,6 @@
             <li @click="$router.push({path: '/favorite'})">
               <div class="my-menu">
                 🧰 <span>百宝箱</span>
-              </div>
-            </li>
-
-            <!-- 聊天室 -->
-            <li @click="goIm()">
-              <div class="my-menu">
-                💬 <span>非礼勿言</span>
               </div>
             </li>
             <!-- 音乐 -->
@@ -88,19 +81,19 @@
               <el-dropdown placement="bottom">
                 <el-avatar class="user-avatar" :size="36"
                            style="margin-top: 12px"
-                           :src="!$common.isEmpty($store.state.currentUser)?$store.state.currentUser.avatar:$store.state.webInfo.avatar">
+                           :src="!$common.isEmpty($store.state.currentMember)?$store.state.currentMember.avatar:$store.state.webInfo.avatar">
                 </el-avatar>
 
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item @click.native="$router.push({path: '/user'})"
-                                    v-if="!$common.isEmpty($store.state.currentUser)">
+                                    v-if="!$common.isEmpty($store.state.currentMember)">
                     <i class="fa fa-user-circle" aria-hidden="true"></i> <span>个人中心</span>
                   </el-dropdown-item>
-                  <el-dropdown-item @click.native="logout()" v-if="!$common.isEmpty($store.state.currentUser)">
+                  <el-dropdown-item @click.native="logout()" v-if="!$common.isEmpty($store.state.currentMember)">
                     <i class="fa fa-sign-out" aria-hidden="true"></i> <span>退出</span>
                   </el-dropdown-item>
                   <el-dropdown-item @click.native="$router.push({path: '/user'})"
-                                    v-if="$common.isEmpty($store.state.currentUser)">
+                                    v-if="$common.isEmpty($store.state.currentMember)">
                     <i class="fa fa-sign-in" aria-hidden="true"></i> <span>登陆</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -171,10 +164,10 @@
           </li>
 
           <!--          <li v-for="(menu, index) in $store.getters.navigationBar"-->
-          <!--              @click="smallMenu({path: '/sort', query: {sortId: menu.id, labelId: menu.labels[0].id}})"-->
+          <!--              @click="smallMenu({path: '/category', query: {id: menu.id, labelId: menu.labels[0].id}})"-->
           <!--              :key="index">-->
           <!--            <div>-->
-          <!--              📒 <span>{{ menu.sortName }}</span>-->
+          <!--              📒 <span>{{ menu.name }}</span>-->
           <!--            </div>-->
           <!--          </li>-->
 
@@ -224,7 +217,7 @@
             </div>
           </li>
 
-          <template v-if="$common.isEmpty($store.state.currentUser)">
+          <template v-if="$common.isEmpty($store.state.currentMember)">
             <li @click="smallMenu({path: '/user'})">
               <div>
                 <i class="fa fa-sign-in" aria-hidden="true"></i>
@@ -320,7 +313,7 @@ export default {
     };
     this.$store.commit("changeToolbarStatus", toolbarStatus);
     this.getWebInfo();
-    this.getSortInfo();
+    this.getCategoryInfo();
 
     this.mobile = document.body.clientWidth < 1100;
 
@@ -346,7 +339,7 @@ export default {
     },
 
     goIm() {
-      if (this.$common.isEmpty(this.$store.state.currentUser)) {
+      if (this.$common.isEmpty(this.$store.state.currentMember)) {
         this.$message({
           message: "请先登录！",
           type: "error"
@@ -366,7 +359,7 @@ export default {
             type: "error"
           });
         });
-      this.$store.commit("loadCurrentUser", {});
+      this.$store.commit("loadCurrentMember", {});
       localStorage.removeItem("userToken");
       this.$router.push({path: '/'});
     },
@@ -384,10 +377,10 @@ export default {
           });
         });
     },
-    getSortInfo() {
-      this.$http.get("/web-categories").then((res) => {
-        if (!this.$common.isEmpty(res.data)) {
-          this.$store.commit("loadSortInfo", res.data);
+    getCategoryInfo() {
+      this.$http.get("/web-categories", {include:["articles", "labels"]}).then((res) => {
+        if (!this.$common.isEmpty(res)) {
+          this.$store.commit("loadCategoryInfo", res);
         }
       })
         .catch((error) => {

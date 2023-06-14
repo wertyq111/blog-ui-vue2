@@ -10,7 +10,7 @@ export default new Vuex.Store({
       visible: false,
       enter: true
     },
-    sortInfo: [],
+    categoryInfo: [],
     currentUser: {},
     currentAdmin: {},
     webInfo: {
@@ -24,15 +24,15 @@ export default new Vuex.Store({
   },
   getters: {
     articleTotal: state => {
-      if (state.sortInfo !== null && state.sortInfo.length !== 0) {
-        if (state.sortInfo.length === 1) {
-          return state.sortInfo[0].countOfSort;
+      if (state.categoryInfo !== null && state.categoryInfo.length !== 0) {
+        if (state.categoryInfo.length === 1) {
+          return state.categoryInfo[0].articles.length;
         } else {
-          return state.sortInfo.reduce((prev, curr) => {
+          return state.categoryInfo.reduce((prev, curr) => {
             if (typeof prev === "number") {
-              return prev + curr.countOfSort;
+              return prev + curr.articles.length;
             } else {
-              return prev.countOfSort + curr.countOfSort;
+              return prev.articles.length + curr.articles.length;
             }
           });
         }
@@ -41,8 +41,8 @@ export default new Vuex.Store({
       }
     },
     navigationBar: state => {
-      if (state.sortInfo !== null && state.sortInfo.length !== 0) {
-        return state.sortInfo.filter(f => f.sortType === 0);
+      if (state.categoryInfo !== null && state.categoryInfo.length !== 0) {
+        return state.categoryInfo.filter(f => f.type === 0);
       } else {
         return [];
       }
@@ -52,9 +52,9 @@ export default new Vuex.Store({
     changeToolbarStatus(state, toolbarState) {
       state.toolbar = toolbarState;
     },
-    loadSortInfo(state, sortInfo) {
-      if (sortInfo !== null && sortInfo.length !== 0) {
-        state.sortInfo = sortInfo.sort((s1, s2) => s1.priority - s2.priority);
+    loadCategoryInfo(state, categoryInfo) {
+      if (categoryInfo !== null && categoryInfo.length !== 0) {
+        state.categoryInfo = categoryInfo.sort((s1, s2) => s1.priority - s2.priority);
       }
     },
     loadCurrentUser(state, user) {
@@ -65,6 +65,7 @@ export default new Vuex.Store({
     },
     loadCurrentMember(state, member) {
       state.currentMember = member;
+      console.log(state.currentMember)
     },
     loadWebInfo(state, webInfo) {
       webInfo.webTitle = webInfo.webTitle.split('');

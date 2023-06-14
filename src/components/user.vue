@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 登陆和注册 -->
-    <div v-if="$common.isEmpty(currentUser)"
+    <div v-if="$common.isEmpty(currentMember)"
          class="myCenter in-up-container my-animation-hideToShow">
       <!-- 背景图片 -->
       <el-image class="my-el-image"
@@ -27,7 +27,7 @@
         <div class="form-container sign-in-container">
           <div class="myCenter">
             <h1>登录</h1>
-            <input v-model="account" type="text" placeholder="用户名/邮箱/手机号">
+            <input v-model="username" type="text" placeholder="用户名/邮箱/手机号">
             <input v-model="password" type="password" placeholder="密码">
             <a href="#" @click="changeDialog('找回密码')">忘记密码？</a>
             <button @click="login()">登录</button>
@@ -65,7 +65,7 @@
         <div class="user-left">
           <div>
             <el-avatar class="user-avatar" @click.native="changeDialog('修改头像')" :size="60"
-                       :src="currentUser.avatar"></el-avatar>
+                       :src="currentMember.avatar"></el-avatar>
           </div>
           <div class="myCenter" style="margin-top: 12px">
             <div class="user-title">
@@ -77,34 +77,36 @@
             </div>
             <div class="user-content">
               <div>
-                <el-input maxlength="30" v-model="currentUser.username"></el-input>
+                <el-input maxlength="30" v-model="currentMember.nickname"></el-input>
               </div>
               <div>
-                <div v-if="!$common.isEmpty(currentUser.phone)">
-                  {{ currentUser.phone }} <span class="changeInfo"
+                <div v-if="!$common.isEmpty(currentMember.phone)">
+                  {{ currentMember.phone }} <span class="changeInfo"
                                                 @click="changeDialog('修改手机号')">修改（功能未接入）</span>
                 </div>
                 <div v-else><span class="changeInfo" @click="changeDialog('绑定手机号')">绑定手机号（功能未接入）</span>
                 </div>
               </div>
               <div>
-                <div v-if="!$common.isEmpty(currentUser.email)">
-                  {{ currentUser.email }} <span class="changeInfo" @click="changeDialog('修改邮箱')">修改</span>
+                <div v-if="!$common.isEmpty(currentMember.email)">
+                  {{ currentMember.email }} <span class="changeInfo" @click="changeDialog('修改邮箱')">修改</span>
                 </div>
                 <div v-else><span class="changeInfo" @click="changeDialog('绑定邮箱')">绑定邮箱</span></div>
               </div>
               <div>
-                <el-radio-group v-model="currentUser.gender">
+                <el-radio-group v-model="currentMember.gender">
                   <el-radio :label="0" style="margin-right: 10px">薛定谔的猫</el-radio>
                   <el-radio :label="1" style="margin-right: 10px">男</el-radio>
                   <el-radio :label="2">女</el-radio>
                 </el-radio-group>
               </div>
               <div>
-                <el-input v-model="currentUser.introduction"
-                          maxlength="60"
+                <el-input v-model="currentMember.intro"
+                          maxlength="300"
+                          :rows="3"
                           type="textarea"
-                          show-word-limit></el-input>
+                          show-word-limit>
+                </el-input>
               </div>
             </div>
           </div>
@@ -216,9 +218,8 @@ export default {
   },
   data() {
     return {
-      currentUser: this.$store.state.currentUser,
+      currentMember: this.$store.state.currentMember,
       username: "",
-      account: "",
       password: "",
       phone: "",
       email: "",
@@ -257,7 +258,6 @@ export default {
             this.$message.error(res.message)
           }
         }).catch((e) => {
-          console.log(e)
           let errorResponse = e.response.data
           this.$message.error(errorResponse.message);
         });
@@ -274,7 +274,7 @@ export default {
       document.querySelector("#loginAndRegist").classList.remove('right-panel-active');
     },
     login() {
-      if (this.$common.isEmpty(this.account) || this.$common.isEmpty(this.password)) {
+      if (this.$common.isEmpty(this.username) || this.$common.isEmpty(this.password)) {
         this.$message({
           message: "请输入账号或密码！",
           type: "error"
@@ -283,24 +283,24 @@ export default {
       }
 
       let user = {
-        username: this.account.trim(),
+        username: this.username.trim(),
         password: this.password.trim()
       };
+      console.log(user)
 
       this.$http.post(this.$constant.baseURL + "/user/login", user, false, false)
         .then((res) => {
-          if (!this.$common.isEmpty(res.data)) {
-            this.$store.commit("loadCurrentUser", res.data);
-            localStorage.setItem("userToken", res.data.accessToken);
-            this.account = "";
+          if (!this.$common.isEmpty(res)) {
+            this.$store.commit("loadCurrentMember", res.member);
+            localStorage.setItem("userToken", res.accessToken);
+            this.username = "";
             this.password = "";
             this.$router.push({path: '/'});
           }
         })
         .catch((error) => {
-          let errorResponse = error.response.data
           this.$message({
-            message: errorResponse.message,
+            message: error.message,
             type: "error"
           });
         });
@@ -349,19 +349,15 @@ export default {
         user.phone = this.phone;
       }
 
-      console.log(user)
-
       this.$http.post(this.$constant.baseURL + "/user/register", user)
         .then((res) => {
-          console.log(res)
-          if (!this.$common.isEmpty(res.data)) {
+          if (!this.$common.isEmpty(res)) {
             this.$message({
               message: "注册成功",
               type: "success"
             });
-            return false;
-            this.$store.commit("loadCurrentUser", res.data);
-            localStorage.setItem("userToken", res.data.accessToken);
+            this.$store.commit("loadCurrentMember", res.member);
+            localStorage.setItem("userToken", res.accessToken);
             this.username = "";
             this.password = "";
             this.$router.push({path: '/'});
@@ -370,9 +366,8 @@ export default {
           }
         })
         .catch((error) => {
-          let errorResponse = error.response.data
           this.$message({
-            message: errorResponse.message,
+            message: error.message,
             type: "error"
           });
         });
@@ -383,12 +378,12 @@ export default {
       }
 
       let user = {
-        username: this.currentUser.username,
-        gender: this.currentUser.gender
+        username: this.currentMember.username,
+        gender: this.currentMember.gender
       };
 
-      if (!this.$common.isEmpty(this.currentUser.introduction)) {
-        user.introduction = this.currentUser.introduction.trim();
+      if (!this.$common.isEmpty(this.currentMember.introduction)) {
+        user.introduction = this.currentMember.introduction.trim();
       }
 
       this.$confirm('确认保存？', '提示', {
@@ -400,8 +395,8 @@ export default {
         this.$http.post(this.$constant.baseURL + "/user/updateUserInfo", user)
           .then((res) => {
             if (!this.$common.isEmpty(res.data)) {
-              this.$store.commit("loadCurrentUser", res.data);
-              this.currentUser = this.$store.state.currentUser;
+              this.$store.commit("loadCurrentMember", res);
+              this.currentMember = this.$store.state.currentMember;
               this.$message({
                 message: "修改成功！",
                 type: "success"
@@ -462,7 +457,7 @@ export default {
       return false;
     },
     checkParameters() {
-      if (this.$common.isEmpty(this.currentUser.username)) {
+      if (this.$common.isEmpty(this.currentMember.username)) {
         this.$message({
           message: "请输入用户名！",
           type: "error"
@@ -470,7 +465,7 @@ export default {
         return false;
       }
 
-      if (this.currentUser.username.indexOf(" ") !== -1) {
+      if (this.currentMember.username.indexOf(" ") !== -1) {
         this.$message({
           message: "用户名不能包含空格！",
           type: "error"
@@ -522,11 +517,11 @@ export default {
             avatar: this.avatar.trim()
           };
 
-          this.$http.post(this.$constant.baseURL + "/user/updateUserInfo", user)
+          this.$http.post(this.$constant.baseURL + "/member/avatar", user)
             .then((res) => {
-              if (!this.$common.isEmpty(res.data)) {
-                this.$store.commit("loadCurrentUser", res.data);
-                this.currentUser = this.$store.state.currentUser;
+              if (!this.$common.isEmpty(res)) {
+                this.$store.commit("loadCurrentMember", res);
+                this.currentMember = this.$store.state.currentMember;
                 this.clearDialog();
                 this.$message({
                   message: "修改成功！",
@@ -597,9 +592,9 @@ export default {
       } else {
         this.$http.post(this.$constant.baseURL + "/user/updateSecretInfo", params, false, false)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.$store.commit("loadCurrentUser", res.data);
-              this.currentUser = this.$store.state.currentUser;
+            if (!this.$common.isEmpty(res)) {
+              this.$store.commit("loadCurrentMember", res);
+              this.currentMember = this.$store.state.currentMember;
               this.clearDialog();
               this.$message({
                 message: "修改成功！",
