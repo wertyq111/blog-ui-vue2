@@ -387,7 +387,7 @@ export default {
     getSortInfo() {
       this.$http.get("/web-categories").then((res) => {
         if (!this.$common.isEmpty(res.data)) {
-          this.$store.commit("loadCategoryInfo", res.data);
+          this.$store.commit("loadSortInfo", res.data);
         }
       })
         .catch((error) => {

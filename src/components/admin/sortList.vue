@@ -286,7 +286,7 @@ export default {
       this.category = category;
     },
     getCategories() {
-      this.$http.get(this.$constant.baseURL + "/web-categories")
+      this.$http.post(this.$constant.baseURL + "/web/categories")
         .then((res) => {
           if (!this.$common.isEmpty(res.data)) {
             this.categories = res.data;

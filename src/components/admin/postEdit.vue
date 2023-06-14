@@ -17,12 +17,12 @@
     </el-tag>
     <el-form :model="article" :rules="rules" ref="ruleForm" label-width="150px"
              class="demo-ruleForm">
-      <el-form-item label="标题" prop="articleTitle">
-        <el-input maxlength="30" v-model="article.articleTitle"></el-input>
+      <el-form-item label="标题" prop="title">
+        <el-input maxlength="30" v-model="article.title"></el-input>
       </el-form-item>
 
-      <el-form-item label="内容" prop="articleContent">
-        <mavon-editor ref="md" @imgAdd="imgAdd" v-model="article.articleContent"/>
+      <el-form-item label="内容" prop="content">
+        <mavon-editor :ishljs="true" ref="md" @imgAdd="imgAdd" v-model="article.content"/>
       </el-form-item>
 
       <el-form-item label="是否启用评论" prop="commentStatus">
@@ -53,26 +53,26 @@
         <el-input maxlength="30" v-model="article.password"></el-input>
       </el-form-item>
 
-      <el-form-item label="封面" prop="articleCover">
+      <el-form-item label="封面" prop="cover">
         <div style="display: flex">
-          <el-input v-model="article.articleCover"></el-input>
+          <el-input v-model="article.cover"></el-input>
           <el-image class="table-td-thumb"
                     lazy
                     style="margin-left: 10px"
-                    :preview-src-list="[article.articleCover]"
-                    :src="article.articleCover"
+                    :preview-src-list="[article.cover]"
+                    :src="article.cover"
                     fit="cover"></el-image>
         </div>
-        <uploadPicture :isAdmin="true" :prefix="'articleCover'" style="margin-top: 10px" @addPicture="addArticleCover"
+        <uploadPicture :isAdmin="true" :prefix="'cover'" style="margin-top: 10px" @addPicture="addCover"
                        :maxSize="2"
                        :maxNumber="1"></uploadPicture>
       </el-form-item>
-      <el-form-item label="分类" prop="sortId">
-        <el-select v-model="article.sortId" placeholder="请选择分类">
+      <el-form-item label="分类" prop="categoryId">
+        <el-select v-model="article.categoryId" placeholder="请选择分类">
           <el-option
-            v-for="item in sorts"
+            v-for="item in categories"
             :key="item.id"
-            :label="item.sortName"
+            :label="item.name"
             :value="item.id">
           </el-option>
         </el-select>
@@ -82,7 +82,7 @@
           <el-option
             v-for="item in labelsTemp"
             :key="item.id"
-            :label="item.labelName"
+            :label="item.name"
             :value="item.id">
           </el-option>
         </el-select>
@@ -107,24 +107,26 @@
         id: this.$route.query.id,
         token: "",
         article: {
-          articleTitle: "",
-          articleContent: "",
+          title: "",
+          content: "",
           commentStatus: true,
           recommendStatus: false,
           viewStatus: true,
           password: "",
-          articleCover: "",
-          sortId: null,
-          labelId: null
+          cover: "",
+          categoryId: null,
+          labelId: null,
+          category: null,
+          label: null
         },
-        sorts: [],
+        categories: [],
         labels: [],
         labelsTemp: [],
         rules: {
-          articleTitle: [
+          title: [
             {required: true, message: '请输入标题', trigger: 'change'}
           ],
-          articleContent: [
+          content: [
             {required: true, message: '请输入内容', trigger: 'change'}
           ],
           commentStatus: [
@@ -136,10 +138,10 @@
           viewStatus: [
             {required: true, message: '是否可见', trigger: 'change'}
           ],
-          articleCover: [
+          cover: [
             {required: true, message: '封面', trigger: 'change'}
           ],
-          sortId: [
+          categoryId: [
             {required: true, message: '分类', trigger: 'change'}
           ],
           labelId: [
@@ -152,31 +154,25 @@
     computed: {},
 
     watch: {
-      'article.sortId'(newVal, oldVal) {
+      'article.categoryId'(newVal, oldVal) {
         if (oldVal !== null) {
           this.article.labelId = null;
         }
         if (!this.$common.isEmpty(newVal) && !this.$common.isEmpty(this.labels)) {
-          this.labelsTemp = this.labels.filter(l => l.sortId === newVal);
+          this.labelsTemp = this.labels.filter(l => l.categoryId === newVal);
         }
       }
     },
-
     created() {
-      this.getSortAndLabel();
+      this.getCategoryAndLabel();
       this.getUpToken();
     },
-
-    mounted() {
-
-    },
-
     methods: {
       getUpToken() {
-        this.$http.get(this.$constant.baseURL + "/qiniu/getUpToken", {}, true)
+        this.$http.get(this.$constant.baseURL + "/qiniu/up-token", {}, true)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.token = res.data;
+            if (!this.$common.isEmpty(res)) {
+              this.token = res.upToken;
             }
           })
           .catch((error) => {
@@ -203,7 +199,7 @@
         let fd = new FormData();
         fd.append("file", file);
         fd.append("token", this.token);
-        fd.append("key", "articlePicture" + "/" + this.$store.state.currentAdmin.username.replace(/[^a-zA-Z]/g, '') + this.$store.state.currentAdmin.id + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix);
+        fd.append("key", "articlePicture" + "/" + this.$store.state.currentMember.user_id + this.$store.state.currentMember.id + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix);
 
         this.$http.uploadQiniu(this.$constant.qiniuUrl, fd)
           .then((res) => {
@@ -220,15 +216,15 @@
             });
           });
       },
-      addArticleCover(res) {
-        this.article.articleCover = res;
+      addCover(res) {
+        this.article.cover = res;
       },
-      getSortAndLabel() {
-        this.$http.get(this.$constant.baseURL + "/webInfo/listSortAndLabel")
+      getCategoryAndLabel() {
+        this.$http.get(this.$constant.baseURL + "/web/categories-labels")
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.sorts = res.data.sorts;
-              this.labels = res.data.labels;
+            if (!this.$common.isEmpty(res)) {
+              this.categories = res.categories;
+              this.labels = res.labels;
               if (!this.$common.isEmpty(this.id)) {
                 this.getArticle();
               }
@@ -242,10 +238,12 @@
           });
       },
       getArticle() {
-        this.$http.get(this.$constant.baseURL + "/admin/article/getArticleById", {id: this.id}, true)
+        this.$http.get(this.$constant.baseURL + "/web/article/" + this.id)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.article = res.data;
+            if (!this.$common.isEmpty(res)) {
+              this.article = res;
+              this.article.categoryId = res.categoryId
+              this.article.labelId = res.labelId
             }
           })
           .catch((error) => {
@@ -266,10 +264,9 @@
         this.$refs[formName].validate((valid) => {
           if (valid) {
             if (this.$common.isEmpty(this.id)) {
-              this.saveArticle(this.article, "/article/saveArticle")
+              this.saveArticle(this.article, "/web/article/")
             } else {
-              this.article.id = this.id;
-              this.saveArticle(this.article, "/article/updateArticle")
+              this.saveArticle(this.article, "/web/article/", this.id)
             }
           } else {
             this.$message({
@@ -285,15 +282,20 @@
           this.getArticle();
         }
       },
-      saveArticle(value, url) {
+      saveArticle(value, url, id = null) {
         this.$confirm('确认保存？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'success',
           center: true
         }).then(() => {
-          this.$http.post(this.$constant.baseURL + url, value, true)
-            .then((res) => {
+          let httpMethod = null
+          if (this.$common.isEmpty(id)) {
+            httpMethod = this.$http.post(this.$constant.baseURL + url, value, true)
+          } else {
+            httpMethod = this.$http.patch(this.$constant.baseURL + url + id, value, true)
+          }
+          httpMethod.then((res) => {
               this.$message({
                 message: "保存成功！",
                 type: "success"

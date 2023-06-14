@@ -5,11 +5,11 @@
         <el-option key="1" label="是" :value="true"></el-option>
         <el-option key="2" label="否" :value="false"></el-option>
       </el-select>
-      <el-select style="width: 140px" class="mrb10" v-model="pagination.sortId" placeholder="请选择分类">
+      <el-select style="width: 140px" class="mrb10" v-model="pagination.categoryId" placeholder="请选择分类">
         <el-option
-          v-for="item in sorts"
+          v-for="item in categories"
           :key="item.id"
-          :label="item.sortName"
+          :label="item.name"
           :value="item.id">
         </el-option>
       </el-select>
@@ -21,17 +21,17 @@
           :value="item.id">
         </el-option>
       </el-select>
-      <el-input v-model="pagination.searchKey" placeholder="文章标题" class="handle-input mrb10"></el-input>
+      <el-input v-model="pagination.title" placeholder="文章标题" class="handle-input mrb10"></el-input>
       <el-button type="primary" icon="el-icon-search" @click="searchArticles()">搜索</el-button>
       <el-button type="danger" @click="clearSearch()">清除参数</el-button>
       <el-button type="primary" @click="$router.push({path: '/postEdit'})">新增文章</el-button>
     </div>
     <el-table :data="articles" border class="table" header-cell-class-name="table-header">
       <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-      <el-table-column prop="username" label="作者" align="center"></el-table-column>
-      <el-table-column prop="articleTitle" label="文章标题" align="center"></el-table-column>
-      <el-table-column prop="sort.sortName" label="分类" align="center"></el-table-column>
-      <el-table-column prop="label.labelName" label="标签" align="center"></el-table-column>
+      <el-table-column prop="member.nickname" label="作者" align="center"></el-table-column>
+      <el-table-column prop="title" label="文章标题" align="center"></el-table-column>
+      <el-table-column prop="category.name" label="分类" align="center"></el-table-column>
+      <el-table-column prop="label.name" label="标签" align="center"></el-table-column>
       <el-table-column prop="viewCount" label="浏览量" align="center"></el-table-column>
       <el-table-column prop="likeCount" label="点赞数" align="center"></el-table-column>
       <el-table-column label="是否可见" align="center">
@@ -45,7 +45,7 @@
       </el-table-column>
       <el-table-column label="封面" align="center">
         <template slot-scope="scope">
-          <el-image lazy class="table-td-thumb" :src="scope.row.articleCover" fit="cover"></el-image>
+          <el-image lazy class="table-td-thumb" :src="scope.row.cover" fit="cover"></el-image>
         </template>
       </el-table-column>
       <el-table-column label="是否启用评论" align="center">
@@ -67,8 +67,8 @@
         </template>
       </el-table-column>
       <el-table-column prop="commentCount" label="评论数" align="center"></el-table-column>
-      <el-table-column prop="createTime" label="创建时间" align="center"></el-table-column>
-      <el-table-column prop="updateTime" label="最终修改时间" align="center"></el-table-column>
+      <el-table-column prop="createdAt" label="创建时间" align="center"></el-table-column>
+      <el-table-column prop="updatedAt" label="最终修改时间" align="center"></el-table-column>
       <el-table-column label="操作" width="180" align="center">
         <template slot-scope="scope">
           <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
@@ -99,13 +99,14 @@
           current: 1,
           size: 10,
           total: 0,
-          searchKey: "",
+          title: "",
           recommendStatus: null,
-          sortId: null,
-          labelId: null
+          categoryId: null,
+          labelId: null,
+          include: ['member','category','label']
         },
         articles: [],
-        sorts: [],
+        categories: [],
         labels: [],
         labelsTemp: []
       }
@@ -114,29 +115,28 @@
     computed: {},
 
     watch: {
-      'pagination.sortId'(newVal) {
+      'pagination.categoryId'(newVal) {
         this.pagination.labelId = null;
         if (!this.$common.isEmpty(newVal) && !this.$common.isEmpty(this.labels)) {
-          this.labelsTemp = this.labels.filter(l => l.sortId === newVal);
+          this.labelsTemp = this.labels.filter(l => l.categoryId === newVal);
         }
       }
     },
 
     created() {
       this.getArticles();
-      this.getSortAndLabel();
+      this.getCategoryAndLabel();
     },
-
-    mounted() {
-    },
-
     methods: {
-      getSortAndLabel() {
-        this.$http.get(this.$constant.baseURL + "/webInfo/listSortAndLabel")
+      getCategoryAndLabel() {
+        this.$http.get(this.$constant.baseURL + "/web/categories-labels")
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.sorts = res.data.sorts;
-              this.labels = res.data.labels;
+            if (!this.$common.isEmpty(res)) {
+              this.categories = res.categories;
+              this.labels = res.labels;
+              if (!this.$common.isEmpty(this.id)) {
+                this.getArticle();
+              }
             }
           })
           .catch((error) => {
@@ -151,25 +151,20 @@
           current: 1,
           size: 10,
           total: 0,
-          searchKey: "",
+          title: "",
           recommendStatus: null,
-          sortId: null,
-          labelId: null
+          categoryId: null,
+          labelId: null,
+          include: ['member','category','label']
         }
         this.getArticles();
       },
       getArticles() {
-        let url = "";
-        if (this.isBoss) {
-          url = "/admin/article/boss/list";
-        } else {
-          url = "/admin/article/user/list";
-        }
-        this.$http.post(this.$constant.baseURL + url, this.pagination, true)
+        this.$http.post(this.$constant.baseURL + "/web/articles", this.pagination, true)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.articles = res.data.records;
-              this.pagination.total = res.data.total;
+            if (!this.$common.isEmpty(res)) {
+              this.articles = res.data;
+              this.pagination.total = res.meta.total;
             }
           })
           .catch((error) => {
@@ -192,21 +187,18 @@
         let param;
         if (flag === 1) {
           param = {
-            articleId: article.id,
             viewStatus: article.viewStatus
           }
         } else if (flag === 2) {
           param = {
-            articleId: article.id,
             commentStatus: article.commentStatus
           }
         } else if (flag === 3) {
           param = {
-            articleId: article.id,
             recommendStatus: article.recommendStatus
           }
         }
-        this.$http.get(this.$constant.baseURL + "/admin/article/changeArticleStatus", param, true)
+        this.$http.patch(this.$constant.baseURL + "/web/article/status/" + article.id, param, true)
           .then((res) => {
             if (flag === 1) {
               this.$message({
@@ -236,7 +228,7 @@
           type: 'success',
           center: true
         }).then(() => {
-          this.$http.get(this.$constant.baseURL + "/article/deleteArticle", {id: item.id}, true)
+          this.$http.delete(this.$constant.baseURL + "/web/article/" + item.id)
             .then((res) => {
               this.pagination.current = 1;
               this.getArticles();

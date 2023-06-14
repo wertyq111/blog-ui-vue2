@@ -6,7 +6,7 @@
       <el-image class="article-image my-el-image"
                 v-once
                 lazy
-                :src="!$common.isEmpty(article.articleCover)?article.articleCover:$constant.random_image+new Date()+Math.floor(Math.random()*10)"
+                :src="!$common.isEmpty(article.cover)?article.cover:$constant.random_image+new Date()+Math.floor(Math.random()*10)"
                 fit="cover">
         <div slot="error" class="image-slot">
           <div class="article-image"></div>
@@ -14,7 +14,7 @@
       </el-image>
       <!-- 文章信息 -->
       <div class="article-info-container">
-        <div class="article-title">{{ article.articleTitle }}</div>
+        <div class="article-title">{{ article.title }}</div>
         <div class="article-info">
           <svg viewBox="0 0 1024 1024" width="14" height="14" style="vertical-align: -2px;">
             <path
@@ -34,7 +34,7 @@
               fill="#FFFFFF"></path>
             <path d="M625 282.1m-43.7 0a43.7 43.7 0 1 0 87.4 0 43.7 43.7 0 1 0-87.4 0Z" fill="#FFFFFF"></path>
           </svg>
-          <span>&nbsp;{{ article.username }}</span>
+          <span>&nbsp;{{ article.member.nickname }}</span>
           <span>·</span>
           <svg viewBox="0 0 1024 1024" width="14" height="14" style="vertical-align: -2px;">
             <path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#409EFF"></path>
@@ -45,7 +45,7 @@
               d="M725.333333 312.888889H711.111111v28.444444c0 31.288889-25.6 56.888889-56.888889 56.888889s-56.888889-25.6-56.888889-56.888889v-28.444444h-170.666666v28.444444c0 31.288889-25.6 56.888889-56.888889 56.888889s-56.888889-25.6-56.888889-56.888889v-28.444444h-14.222222c-22.755556 0-42.666667 19.911111-42.666667 42.666667v341.333333c0 22.755556 19.911111 42.666667 42.666667 42.666667h426.666666c22.755556 0 42.666667-19.911111 42.666667-42.666667v-341.333333c0-22.755556-19.911111-42.666667-42.666667-42.666667zM426.666667 654.222222h-56.888889c-17.066667 0-28.444444-11.377778-28.444445-28.444444s11.377778-28.444444 28.444445-28.444445h56.888889c17.066667 0 28.444444 11.377778 28.444444 28.444445s-11.377778 28.444444-28.444444 28.444444z m227.555555 0h-56.888889c-17.066667 0-28.444444-11.377778-28.444444-28.444444s11.377778-28.444444 28.444444-28.444445h56.888889c17.066667 0 28.444444 11.377778 28.444445 28.444445s-11.377778 28.444444-28.444445 28.444444z m0-113.777778h-56.888889c-17.066667 0-28.444444-11.377778-28.444444-28.444444s11.377778-28.444444 28.444444-28.444444h56.888889c17.066667 0 28.444444 11.377778 28.444445 28.444444s-11.377778 28.444444-28.444445 28.444444z"
               fill="#FFFFFF"></path>
           </svg>
-          <span>&nbsp;{{ article.createTime }}</span>
+          <span>&nbsp;{{ article.createdAt }}</span>
           <span>·</span>
           <svg viewBox="0 0 1024 1024" width="14" height="14" style="vertical-align: -2px;">
             <path d="M14.656 512a497.344 497.344 0 1 0 994.688 0 497.344 497.344 0 1 0-994.688 0z"
@@ -100,7 +100,7 @@
 
       <div class="article-info-news"
            @click="weiYanDialogVisible = true"
-           v-if="!$common.isEmpty($store.state.currentUser) && $store.state.currentUser.id === article.userId">
+           v-if="!$common.isEmpty($store.state.currentMember) && $store.state.currentMember.id === article.member.id">
         <svg width="30" height="30" viewBox="0 0 1024 1024">
           <path d="M0 0h1024v1024H0V0z" fill="#202425" opacity=".01"></path>
           <path
@@ -130,16 +130,16 @@
         <div v-html="articleContentHtml" class="entry-content"></div>
         <!-- 最后更新时间 -->
         <div class="article-update-time">
-          <span>文章最后更新于 {{ article.updateTime }}</span>
+          <span>文章最后更新于 {{ article.updatedAt }}</span>
         </div>
         <!-- 分类 -->
         <div class="article-sort">
-          <span @click="$router.push({path: '/sort', query: {sortId: article.sortId, labelId: article.labelId}})">{{ article.sort.sortName +" ▶ "+ article.label.labelName}}</span>
+          <span @click="$router.push({path: '/category', query: {categoryId: article.category.id, labelId: article.label.id}})">{{ article.category.name +" ▶ "+ article.label.name}}</span>
         </div>
         <!-- 作者信息 -->
         <blockquote>
           <div>
-            作者：{{article.username}}
+            作者：{{article.member.nickname}}
           </div>
           <div>
             版权声明：转载请注明文章出处
@@ -220,7 +220,7 @@
     },
     methods: {
       deleteTreeHole(id) {
-        if (this.$common.isEmpty(this.$store.state.currentUser)) {
+        if (this.$common.isEmpty(this.$store.state.currentMember)) {
           this.$message({
             message: "请先登录！",
             type: "error"
@@ -335,13 +335,13 @@
         headings.attr('id', (i, id) => id || 'toc-' + i);
       },
       getArticle() {
-        this.$http.get(this.$constant.baseURL + "/article/getArticleById", {id: this.id, flag: true})
+        this.$http.get(this.$constant.baseURL + "/web-article/" + this.id, {include:["member", "category", "label"]})
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.article = res.data;
+            if (!this.$common.isEmpty(res)) {
+              this.article = res;
               this.getNews();
               const md = new MarkdownIt({breaks: true});
-              this.articleContentHtml = md.render(this.article.articleContent);
+              this.articleContentHtml = md.render(this.article.content);
               this.$nextTick(() => {
                 this.highlight();
                 this.addId();
@@ -398,7 +398,7 @@
           $(item).attr(attributes);
           preCode.attr("data-rel", lang.toUpperCase()).addClass(lang.toLowerCase());
           // 启用代码高亮
-          hljs.highlightBlock(preCode[0]);
+          hljs.highlightElement(preCode[0]);
           // 启用代码行号
           hljs.lineNumbersBlock(preCode[0]);
         });

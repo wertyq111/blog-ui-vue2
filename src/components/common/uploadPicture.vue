@@ -138,7 +138,7 @@
           suffix = file.name.substring(file.name.lastIndexOf('.'));
         }
 
-        this.qiniuParam.key = this.prefix + "/" + this.$store.state.currentMember.user_id.replace(/[^a-zA-Z]/g, '') + this.$store.state.currentMember.id + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix;
+        this.qiniuParam.key = this.prefix + "/" + this.$store.state.currentMember.user_id + this.$store.state.currentMember.id + new Date().getTime() + Math.floor(Math.random() * 1000) + suffix;
         },
       // 添加文件、上传成功和上传失败时都会被调用
       handleChange(file, fileList) {

@@ -24,7 +24,7 @@
         <el-image class="my-el-image"
                   v-once
                   lazy
-                  :src="!$common.isEmpty(article.articleCover)?article.articleCover:$constant.random_image+new Date()+Math.floor(Math.random()*10)"
+                  :src="!$common.isEmpty(article.cover)?article.cover:$constant.random_image+new Date()+Math.floor(Math.random()*10)"
                   fit="cover">
           <div slot="error" class="image-slot myCenter" style="background-color: var(--lightGreen)">
             <div class="error-text">
@@ -46,13 +46,13 @@
               d="M725.333333 312.888889H711.111111v28.444444c0 31.288889-25.6 56.888889-56.888889 56.888889s-56.888889-25.6-56.888889-56.888889v-28.444444h-170.666666v28.444444c0 31.288889-25.6 56.888889-56.888889 56.888889s-56.888889-25.6-56.888889-56.888889v-28.444444h-14.222222c-22.755556 0-42.666667 19.911111-42.666667 42.666667v341.333333c0 22.755556 19.911111 42.666667 42.666667 42.666667h426.666666c22.755556 0 42.666667-19.911111 42.666667-42.666667v-341.333333c0-22.755556-19.911111-42.666667-42.666667-42.666667zM426.666667 654.222222h-56.888889c-17.066667 0-28.444444-11.377778-28.444445-28.444444s11.377778-28.444444 28.444445-28.444445h56.888889c17.066667 0 28.444444 11.377778 28.444444 28.444445s-11.377778 28.444444-28.444444 28.444444z m227.555555 0h-56.888889c-17.066667 0-28.444444-11.377778-28.444444-28.444444s11.377778-28.444444 28.444444-28.444445h56.888889c17.066667 0 28.444444 11.377778 28.444445 28.444445s-11.377778 28.444444-28.444445 28.444444z m0-113.777778h-56.888889c-17.066667 0-28.444444-11.377778-28.444444-28.444444s11.377778-28.444444 28.444444-28.444444h56.888889c17.066667 0 28.444444 11.377778 28.444445 28.444444s-11.377778 28.444444-28.444445 28.444444z"
               fill="#FFFFFF"></path>
           </svg>
-          发布于 {{ article.createAt }}
+          发布于 {{ article.createdAt }}
         </div>
         <!-- 标题 -->
 
         <el-tooltip placement="top" effect="light">
-          <div slot="content">{{ article.articleTitle }}</div>
-          <h3>{{ article.articleTitle }}</h3>
+          <div slot="content">{{ article.title }}</div>
+          <h3>{{ article.title }}</h3>
         </el-tooltip>
 
         <!-- 信息 -->
@@ -109,12 +109,12 @@
         </div>
         <!-- 内容 -->
         <div class="recent-post-desc">
-          {{ article.articleContent }}
+          {{ article.content }}
         </div>
         <!-- 分类 标签 -->
         <div class="sort-label">
           <span style="margin-right: 12px"
-                @click.stop="$router.push({path: '/sort', query: {categoryId: article.categoryId}})">
+                @click.stop="$router.push({path: '/category', query: {categoryId: article.category.id}})">
             <svg viewBox="0 0 1024 1024" width="15" height="15" style="vertical-align: -3px;">
               <path
                 d="M179.2 153.6m89.6 0l588.8 0q89.6 0 89.6 89.6l0 486.4q0 89.6-89.6 89.6l-588.8 0q-89.6 0-89.6-89.6l0-486.4q0-89.6 89.6-89.6Z"
@@ -131,9 +131,9 @@
               <path
                 d="M128 486.4m51.2 0l0 0q51.2 0 51.2 51.2l0 0q0 51.2-51.2 51.2l0 0q-51.2 0-51.2-51.2l0 0q0-51.2 51.2-51.2Z"
                 fill="#FFA86A"></path>
-            </svg> {{ article.sort.sortName }}
+            </svg> {{ article.category.name }}
           </span>
-          <span @click.stop="$router.push({path: '/sort', query: {categoryId: article.categoryId, labelId: article.labelId}})">
+          <span @click.stop="$router.push({path: '/category', query: {categoryId: article.category.id, labelId: article.label.id}})">
             <svg viewBox="0 0 1024 1024" width="15" height="15" style="vertical-align: -3px;">
               <path
                 d="M905.0112 560.4352l-342.784 342.784c-56.7808 56.7808-148.7872 56.7808-205.568 0l-231.5776-231.5776c-56.7808-56.7808-56.7808-148.7872 0-205.568l342.9376-342.9376a114.8928 114.8928 0 0 1 84.224-33.5872l266.3936 7.2192c60.7744 1.6384 109.7216 50.3808 111.5648 111.1552l8.2944 267.8272c1.024 31.6928-11.1104 62.3104-33.4848 84.6848z"
@@ -141,7 +141,7 @@
               <path
                 d="M675.2256 491.4688c-82.176 0-149.0432-66.8672-149.0432-149.0432s66.8672-149.0432 149.0432-149.0432 149.0432 66.8672 149.0432 149.0432-66.8672 149.0432-149.0432 149.0432z m0-192.2048c-23.808 0-43.2128 19.3536-43.2128 43.2128 0 23.808 19.3536 43.2128 43.2128 43.2128 23.808 0 43.2128-19.3536 43.2128-43.2128s-19.4048-43.2128-43.2128-43.2128z"
                 fill="#FFE37B"></path>
-            </svg> {{ article.label.labelName }}
+            </svg> {{ article.label.name }}
           </span>
         </div>
       </div>

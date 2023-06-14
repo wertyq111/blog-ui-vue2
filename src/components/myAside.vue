@@ -46,18 +46,18 @@
     </div>
 
     <!-- 速览 -->
-    <div v-for="(sort, index) in sortInfo"
-         @click="selectSort(sort)"
+    <div v-for="(category, index) in sortInfo"
+         @click="selectSort(category)"
          :key="index"
          :style="{background: $constant.sortColor[index % $constant.sortColor.length]}"
          class="shadow-box-mini background-opacity wow"
          style="position: relative;padding: 20px 25px 40px;border-radius: 10px;animation: hideToShow 1s ease-in-out;margin-top: 40px;cursor: pointer;color: var(--white)">
       <div>速览</div>
       <div class="sort-name">
-        {{sort.sortName}}
+        {{category.name}}
       </div>
       <div style="font-weight: bold;margin-top: 15px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden">
-        {{sort.sortDescription}}
+        {{category.description}}
       </div>
     </div>
 
@@ -68,12 +68,12 @@
         <i class="el-icon-folder-opened card-content2-icon"></i>
         <span>分类</span>
       </div>
-      <div v-for="(sort, index) in sortInfo"
+      <div v-for="(category, index) in sortInfo"
            :key="index"
            class="post-sort"
-           @click="$router.push({path: '/sort', query: {sortId: sort.id}})">
+           @click="$router.push({path: '/category', query: {id: category.id}})">
         <div>
-          <span v-for="(s, i) in sort.sortName.split('')" :key="i">{{ s }}</span>
+          <span v-for="(s, i) in category.name.split('')" :key="i">{{ s }}</span>
         </div>
       </div>
     </div>
@@ -91,20 +91,20 @@
            @click="$router.push({path: '/article', query: {id: article.id}})">
         <div class="aside-post-detail">
           <div class="aside-post-image">
-            <el-image lazy class="my-el-image" :src="article.articleCover" fit="cover">
+            <el-image lazy class="my-el-image" :src="article.cover" fit="cover">
               <div slot="error" class="image-slot">
                 <div class="error-aside-image">
-                  {{article.username}}
+                  {{article.member.nickname}}
                 </div>
               </div>
             </el-image>
           </div>
           <div class="aside-post-title">
-            {{ article.articleTitle }}
+            {{ article.title }}
           </div>
         </div>
         <div class="aside-post-date">
-          <i class="el-icon-date" style="color: var(--greyFont)"></i>{{ article.createTime }}
+          <i class="el-icon-date" style="color: var(--greyFont)"></i>{{ article.createdAt }}
         </div>
       </div>
     </div>
@@ -176,8 +176,8 @@
       getAdmire() {
         this.$http.get(this.$constant.baseURL + "/web-members/admires")
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.admires = res.data;
+            if (!this.$common.isEmpty(res)) {
+              this.admires = res;
             }
           })
           .catch((error) => {
@@ -188,10 +188,10 @@
           });
       },
       getRecommendArticles() {
-        this.$http.post(this.$constant.baseURL + "/articles", this.pagination)
+        this.$http.get(this.$constant.baseURL + "/web-articles", this.pagination)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.recommendArticles = res.data.records;
+            if (!this.$common.isEmpty(res)) {
+              this.recommendArticles = res.data;
             }
           })
           .catch((error) => {

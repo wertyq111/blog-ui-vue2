@@ -146,12 +146,12 @@ export default {
     },
 
     async getArticles() {
-      await this.$http.post(this.$constant.baseURL + "/articles", this.pagination)
+      await this.$http.get(this.$constant.baseURL + "/web-articles", this.pagination)
         .then((res) => {
-          if (!this.$common.isEmpty(res.data)) {
+          if (!this.$common.isEmpty(res)) {
             this.articles = this.articles.concat(res.data);
             console.log(this.articles)
-            this.pagination.total = res.total;
+            this.pagination.total = res.meta.total;
           }
         })
         .catch((error) => {
