@@ -1,7 +1,7 @@
 <template>
   <div>
     <div style="margin-bottom: 20px">
-      <el-select v-if="isBoss" v-model="pagination.commentType" placeholder="评论来源类型" style="margin-right: 10px">
+      <el-select v-if="isBoss" v-model="pagination.type" placeholder="评论来源类型" style="margin-right: 10px">
         <el-option key="1" label="文章评论" value="article"></el-option>
         <el-option key="2" label="树洞留言" value="message"></el-option>
       </el-select>
@@ -14,11 +14,11 @@
       <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
       <el-table-column prop="source" label="评论来源标识" align="center"></el-table-column>
       <el-table-column prop="type" label="评论来源类型" align="center"></el-table-column>
-      <el-table-column prop="userId" label="发表用户ID" align="center"></el-table-column>
+      <el-table-column prop="member.nickname" label="发表用户" align="center"></el-table-column>
       <el-table-column prop="likeCount" label="点赞数" align="center"></el-table-column>
-      <el-table-column prop="commentContent" label="评论内容" align="center"></el-table-column>
-      <el-table-column prop="commentInfo" label="评论额外信息" align="center"></el-table-column>
-      <el-table-column prop="createTime" label="创建时间" align="center"></el-table-column>
+      <el-table-column prop="content" label="评论内容" align="center"></el-table-column>
+      <el-table-column prop="info" label="评论额外信息" align="center"></el-table-column>
+      <el-table-column prop="createdAt" label="创建时间" align="center"></el-table-column>
       <el-table-column label="操作" width="180" align="center">
         <template slot-scope="scope">
           <el-button type="text" icon="el-icon-delete" style="color: var(--orangeRed)" @click="handleDelete(scope.row)">
@@ -29,7 +29,7 @@
     </el-table>
     <div class="pagination">
       <el-pagination background layout="total, prev, pager, next"
-                     :current-page="pagination.current"
+                     :current-page="pagination.page"
                      :page-size="pagination.size"
                      :total="pagination.total"
                      @current-change="handlePageChange">
@@ -43,52 +43,40 @@
   export default {
     data() {
       return {
-        isBoss: this.$store.state.currentAdmin.isBoss,
+        //isBoss: this.$store.state.currentAdmin.isBoss,
+        isBoss: true,
         pagination: {
-          current: 1,
+          page: 1,
           size: 10,
           total: 0,
           source: null,
-          commentType: ""
+          type: "",
+          include: ["member"]
         },
         comments: []
       }
     },
-
-    computed: {},
-
     watch: {},
-
     created() {
       this.getComments();
     },
-
-    mounted() {
-    },
-
     methods: {
       clearSearch() {
         this.pagination = {
-          current: 1,
+          page: 1,
           size: 10,
           total: 0,
           source: null,
-          commentType: ""
+          type: ""
         }
         this.getComments();
       },
       getComments() {
-        let url = "";
-        if (this.isBoss) {
-          url = "/admin/comment/boss/list";
-        } else {
-          url = "/admin/comment/user/list";
-        }
-        this.$http.post(this.$constant.baseURL + url, this.pagination, true)
+        this.$http.get(this.$constant.baseURL + "/web/comments", this.pagination, true)
           .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.comments = res.data.records;
-              this.pagination.total = res.data.total;
+            if (!this.$common.isEmpty(res)) {
+              this.comments = res.data;
+              this.pagination.total = res.meta.total;
             }
           })
           .catch((error) => {
@@ -99,30 +87,24 @@
           });
       },
       handlePageChange(val) {
-        this.pagination.current = val;
+        this.pagination.page = val;
         this.getComments();
       },
       searchComments() {
         this.pagination.total = 0;
-        this.pagination.current = 1;
+        this.pagination.page = 1;
         this.getComments();
       },
       handleDelete(item) {
-        let url = "";
-        if (this.isBoss) {
-          url = "/admin/comment/boss/deleteComment";
-        } else {
-          url = "/admin/comment/user/deleteComment";
-        }
         this.$confirm('删除评论后，所有该评论的回复均不可见。确认删除？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'success',
           center: true
         }).then(() => {
-          this.$http.get(this.$constant.baseURL + url, {id: item.id}, true)
+          this.$http.delete(this.$constant.baseURL + "/web/comment/" + item.id)
             .then((res) => {
-              this.pagination.current = 1;
+              this.pagination.page = 1;
               this.getComments();
               this.$message({
                 message: "删除成功！",

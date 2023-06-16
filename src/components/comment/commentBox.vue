@@ -3,7 +3,7 @@
     <!-- 框 -->
     <textarea
       class="comment-textarea"
-      v-model="commentContent"
+      v-model="content"
       placeholder="写下点什么..."
       maxlength="1000"/>
     <!-- 按钮 -->
@@ -69,18 +69,18 @@
     },
     data() {
       return {
-        commentContent: "",
+        content: "",
         showEmoji: false,
         showPicture: false,
         picture: {
-          name: this.$store.state.currentUser.username,
+          name: this.$store.state.currentMember.nickname,
           url: ""
         }
       };
     },
     methods: {
       openPicture() {
-        if (this.$common.isEmpty(this.$store.state.currentUser)) {
+        if (this.$common.isEmpty(this.$store.state.currentMember)) {
           this.$message({
             message: "请先登录！",
             type: "error"
@@ -97,15 +97,15 @@
       },
       savePicture() {
         let img = "<" + this.picture.name + "," + this.picture.url + ">";
-        this.commentContent += img;
+        this.content += img;
         this.picture.url = "";
         this.showPicture = false;
       },
       addEmoji(key) {
-        this.commentContent += key;
+        this.content += key;
       },
       showGraffiti() {
-        if (this.$common.isEmpty(this.$store.state.currentUser)) {
+        if (this.$common.isEmpty(this.$store.state.currentMember)) {
           this.$message({
             message: "请先登录！",
             type: "error"
@@ -113,11 +113,11 @@
           return;
         }
 
-        this.commentContent = "";
+        this.content = "";
         this.$emit("showGraffiti");
       },
       submitComment() {
-        if (this.$common.isEmpty(this.$store.state.currentUser)) {
+        if (this.$common.isEmpty(this.$store.state.currentMember)) {
           this.$message({
             message: "请先登录！",
             type: "error"
@@ -125,15 +125,15 @@
           return;
         }
 
-        if (this.commentContent.trim() === "") {
+        if (this.content.trim() === "") {
           this.$message({
             message: "你还没写呢~",
             type: "warning"
           });
           return;
         }
-        this.$emit("submitComment", this.commentContent.trim());
-        this.commentContent = "";
+        this.$emit("submitComment", this.content.trim());
+        this.content = "";
       }
     }
   }

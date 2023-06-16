@@ -13,11 +13,11 @@
           </commentBox>
         </div>
         <!-- 画笔 -->
-<!--        <div v-show="isGraffiti">-->
-<!--          <graffiti @showComment="isGraffiti = !isGraffiti"-->
-<!--                    @addGraffitiComment="addGraffitiComment">-->
-<!--          </graffiti>-->
-<!--        </div>-->
+        <!--        <div v-show="isGraffiti">-->
+        <!--          <graffiti @showComment="isGraffiti = !isGraffiti"-->
+        <!--                    @addGraffitiComment="addGraffitiComment">-->
+        <!--          </graffiti>-->
+        <!--        </div>-->
       </div>
     </div>
 
@@ -33,54 +33,57 @@
            v-for="(item, index) in comments"
            :key="index">
         <!-- 头像 -->
-        <el-avatar shape="square" class="commentInfo-avatar" :size="35" :src="item.avatar"></el-avatar>
+        <el-avatar shape="square" class="commentInfo-avatar" :size="35" :src="item.member.avatar"></el-avatar>
 
         <div style="flex: 1;padding-left: 12px">
           <!-- 评论信息 -->
           <div style="display: flex;justify-content: space-between">
             <div>
-              <span class="commentInfo-username">{{ item.username }}</span>
-              <span class="commentInfo-master" v-if="item.userId === userId">主人翁</span>
-              <span class="commentInfo-other">{{ $common.getDateDiff(item.createTime) }}</span>
+              <span class="commentInfo-username">{{ item.member.nickname }}</span>
+              <span class="commentInfo-master" v-if="item.member.id === member.id">主人翁</span>
+              <span class="commentInfo-other">{{ $common.getDateDiff(item.createdAt) }}</span>
             </div>
-            <div class="commentInfo-reply" @click="replyDialog(item, item)">
-              <span v-if="item.childComments.total > 0">{{item.childComments.total}} </span><span>回复</span>
+            <div class="commentInfo-reply" @click="replyDialog(item)">
+              <span v-if="item.children.length > 0">{{ item.children.length }} </span><span>回复</span>
             </div>
           </div>
           <!-- 评论内容 -->
           <div class="commentInfo-content">
-            <span v-html="item.commentContent"></span>
+            <span v-html="item.content"></span>
           </div>
           <!-- 回复模块 -->
-          <div v-if="!$common.isEmpty(item.childComments) && !$common.isEmpty(item.childComments.records)">
-            <div class="commentInfo-detail" v-for="(childItem, i) in item.childComments.records" :key="i">
+          <div v-if="!$common.isEmpty(item.comments) && !$common.isEmpty(item.comments.data)">
+            <div class="commentInfo-detail" v-for="(child, i) in item.comments.data" :key="i">
               <!-- 头像 -->
-              <el-avatar shape="square" class="commentInfo-avatar" :size="30" :src="childItem.avatar"></el-avatar>
+              <el-avatar shape="square" class="commentInfo-avatar" :size="30" :src="child.member.avatar"></el-avatar>
 
               <div style="flex: 1;padding-left: 12px">
                 <!-- 评论信息 -->
                 <div style="display: flex;justify-content: space-between">
                   <div>
-                    <span class="commentInfo-username-small">{{ childItem.username }}</span>
-                    <span class="commentInfo-master" v-if="childItem.userId === userId">主人翁</span>
-                    <span class="commentInfo-other">{{ $common.getDateDiff(childItem.createTime) }}</span>
+                    <span class="commentInfo-username-small">{{ child.member.nickname }}</span>
+                    <span class="commentInfo-master" v-if="child.member.id === member.id">主人翁</span>
+                    <span class="commentInfo-other">{{ $common.getDateDiff(child.createdAt) }}</span>
                   </div>
                   <div>
-                    <span class="commentInfo-reply" @click="replyDialog(childItem, item)">回复</span>
+                    <span class="commentInfo-reply" @click="replyDialog(item, child)">回复</span>
                   </div>
                 </div>
                 <!-- 评论内容 -->
                 <div class="commentInfo-content">
-                  <template v-if="childItem.parentCommentId !== item.id &&
-                                  childItem.parentUserId !== childItem.userId">
-                    <span style="color: var(--blue)">@{{ childItem.parentUsername }} </span>:
+                  <template v-if="
+                  child.parent
+                  && child.parent.id !== item.id
+                  && child.parent.member.id !== child.member.id
+                  ">
+                    <span style="color: var(--blue)">@{{ child.parent.member.nickname }} </span>:
                   </template>
-                  <span v-html="childItem.commentContent"></span>
+                  <span v-html="child.content"></span>
                 </div>
               </div>
             </div>
             <!-- 分页 -->
-            <div class="pagination-wrap" v-if="item.childComments.records.length < item.childComments.total">
+            <div class="pagination-wrap" v-if="item.comments.data.length < item.comments.total">
               <div class="pagination"
                    @click="toChildPage(item)">
                 展开
@@ -90,7 +93,7 @@
         </div>
       </div>
       <!-- 分页 -->
-      <proPage :current="pagination.current"
+      <proPage :page="pagination.page"
                :size="pagination.size"
                :total="pagination.total"
                :buttonSize="6"
@@ -120,303 +123,311 @@
 </template>
 
 <script>
-  // const graffiti = () => import( "./graffiti");
-  const commentBox = () => import( "./commentBox");
-  const proPage = () => import( "../common/proPage");
+const graffiti = () => import( "./graffiti");
+const commentBox = () => import( "./commentBox");
+const proPage = () => import( "../common/proPage");
 
-  export default {
-    components: {
-      // graffiti,
-      commentBox,
-      proPage
+export default {
+  components: {
+    graffiti,
+    commentBox,
+    proPage
+  },
+  props: {
+    source: {
+      type: Number
     },
-    props: {
-      source: {
-        type: Number
-      },
-      type: {
-        type: String
-      },
-      userId: {
-        type: Number
-      }
+    type: {
+      type: String
     },
-    data() {
-      return {
-        isGraffiti: false,
+    member: {
+      type: Object
+    }
+  },
+  data() {
+    return {
+      isGraffiti: false,
+      total: 0,
+      replyDialogVisible: false,
+      original: {},
+      parent: {},
+      comments: [],
+      pagination: {
+        page: 1,
+        size: 5,
         total: 0,
-        replyDialogVisible: false,
-        floorComment: {},
-        replyComment: {},
-        comments: [],
-        pagination: {
-          current: 1,
-          size: 10,
-          total: 0,
-          source: this.source,
-          commentType: this.type,
-          floorCommentId: null
-        }
-      };
-    },
+        source: this.source,
+        type: this.type,
+        commentId: 0,
+        include: ["member", "parent", "children"]
+      }
+    };
+  },
 
-    computed: {},
+  computed: {},
 
-    created() {
+  created() {
+    this.getComments(this.pagination);
+    this.getTotal();
+  },
+  methods: {
+    toPage(page) {
+      this.pagination.page = page;
+      window.scrollTo({
+        top: document.getElementById('comment-content').offsetTop
+      });
       this.getComments(this.pagination);
-      this.getTotal();
     },
-    methods: {
-      toPage(page) {
-        this.pagination.current = page;
-        window.scrollTo({
-          top: document.getElementById('comment-content').offsetTop
-        });
-        this.getComments(this.pagination);
-      },
-      getTotal() {
-        this.$http.get(this.$constant.baseURL + "/comment/getCommentCount", {source: this.source, type: this.type})
-          .then((res) => {
-            if (!this.$common.isEmpty(res.data)) {
-              this.total = res.data;
-            }
-          })
-          .catch((error) => {
-            this.$message({
-              message: error.message,
-              type: "error"
-            });
+    getTotal() {
+      this.$http.get(this.$constant.baseURL + "/web/comments/list", {source: this.source, type: this.type})
+        .then((res) => {
+          if (!this.$common.isEmpty(res)) {
+            this.total = res.length;
+          }
+        })
+        .catch((error) => {
+          this.$message({
+            message: error.message,
+            type: "error"
           });
-      },
-      toChildPage(floorComment) {
-        floorComment.childComments.current += 1;
-        let pagination = {
-          current: floorComment.childComments.current,
-          size: 5,
-          total: 0,
-          source: this.source,
-          commentType: this.type,
-          floorCommentId: floorComment.id
-        }
-        this.getComments(pagination, floorComment, true);
-      },
-      emoji(comments, flag) {
-        comments.forEach(c => {
-          c.commentContent = c.commentContent.replace(/\n/g, '<br/>');
-          c.commentContent = this.$common.faceReg(c.commentContent);
-          c.commentContent = this.$common.pictureReg(c.commentContent);
-          if (flag) {
-            if (!this.$common.isEmpty(c.childComments) && !this.$common.isEmpty(c.childComments.records)) {
-              c.childComments.records.forEach(cc => {
-                c.commentContent = c.commentContent.replace(/\n/g, '<br/>');
-                cc.commentContent = this.$common.faceReg(cc.commentContent);
-                cc.commentContent = this.$common.pictureReg(cc.commentContent);
-              });
+        });
+    },
+    toChildPage(child) {
+      child.comments.page += 1;
+      this.pagination.page = child.comments.page
+      this.pagination.commentId = child.id
+      this.getComments(this.pagination, child, true);
+    },
+    emoji(comments, flag) {
+      comments.forEach(c => {
+        c.content = c.content.replace(/\n/g, '<br/>');
+        c.content = this.$common.faceReg(c.content);
+        c.content = this.$common.pictureReg(c.content);
+        if (flag) {
+          // 如果下级评论存在则对该评论添加 comments 属性
+          if (!this.$common.isEmpty(c.children) && c.children.length > 0) {
+            if (c.children.length > 5) {
+              this.pagination.commentId = c.id
+              this.getComments(this.pagination, c, true)
+            } else {
+              c.comments = {
+                data: c.children,
+                page: 1,
+                total: c.children.length
+              }
+              this.emoji(c.comments.data, false)
             }
           }
-        });
-      },
-      getComments(pagination, floorComment = {}, isToPage = false) {
-        this.$http.post(this.$constant.baseURL + "/comment/listComment", pagination)
-          .then((res) => {
-            if (!this.$common.isEmpty(res.data) && !this.$common.isEmpty(res.data.records)) {
-              if (this.$common.isEmpty(floorComment)) {
-                this.comments = res.data.records;
-                pagination.total = res.data.total;
-                this.emoji(this.comments, true);
+        }
+      });
+    },
+    getComments(pagination, children = {}, isToPage = false) {
+      this.$http.get(this.$constant.baseURL + "/web/comments", pagination)
+        .then((res) => {
+          if (!this.$common.isEmpty(res) && !this.$common.isEmpty(res.data)) {
+            if (this.$common.isEmpty(children)) {
+              this.comments = res.data;
+              pagination.total = res.meta.total;
+              this.emoji(this.comments, true);
+            } else {
+              children.comments = children.comments ? children.comments : this.$set(children,'comments',{data: [], records: []})
+              if (isToPage === false) {
+                children.comments.records = res.data;
               } else {
-                if (isToPage === false) {
-                  floorComment.childComments = res.data;
-                } else {
-                  floorComment.childComments.total = res.data.total;
-                  floorComment.childComments.records = floorComment.childComments.records.concat(res.data.records);
-                }
-                this.emoji(floorComment.childComments.records, false);
+                children.comments.records = children.comments.records.concat(res.data);
               }
+              // 深拷贝records 到 data 中,true - 深拷贝, false - 浅拷贝
+              children.comments.data = $.extend(true,[], children.comments.records)
+              children.comments.total = res.meta.total;
+              children.comments.page = res.meta.current_page;
+              this.emoji(children.comments.data, false);
             }
-          })
-          .catch((error) => {
-            this.$message({
-              message: error.message,
-              type: "error"
-            });
+          }
+          this.clearPagination()
+        })
+        .catch((error) => {
+          this.$message({
+            message: error.message,
+            type: "error"
           });
-      },
-      addGraffitiComment(graffitiComment) {
-        this.submitComment(graffitiComment);
-      },
-      submitComment(commentContent) {
-        let comment = {
-          source: this.source,
-          type: this.type,
-          commentContent: commentContent
-        };
+        });
+    },
+    addGraffitiComment(graffitiComment) {
+      this.submitComment(graffitiComment);
+    },
+    submitComment(content) {
+      let comment = {
+        source: this.source,
+        type: this.type,
+        content: content
+      };
 
-        this.$http.post(this.$constant.baseURL + "/comment/saveComment", comment)
-          .then((res) => {
-            this.$message({
-              type: 'success',
-              message: '保存成功！'
-            });
-            this.pagination = {
-              current: 1,
-              size: 10,
-              total: 0,
-              source: this.source,
-              commentType: this.type,
-              floorCommentId: null
-            }
-            this.getComments(this.pagination);
-            this.getTotal();
-          })
-          .catch((error) => {
-            this.$message({
-              message: error.message,
-              type: "error"
-            });
+      this.$http.post(this.$constant.baseURL + "/web/comment", comment)
+        .then((res) => {
+          this.$message({
+            type: 'success',
+            message: '保存成功！'
           });
-      },
-      submitReply(commentContent) {
-        let comment = {
-          source: this.source,
-          type: this.type,
-          floorCommentId: this.floorComment.id,
-          commentContent: commentContent,
-          parentCommentId: this.replyComment.id,
-          parentUserId: this.replyComment.userId
-        };
-
-        let floorComment = this.floorComment;
-
-        this.$http.post(this.$constant.baseURL + "/comment/saveComment", comment)
-          .then((res) => {
-            let pagination = {
-              current: 1,
-              size: 5,
-              total: 0,
-              source: this.source,
-              commentType: this.type,
-              floorCommentId: floorComment.id
-            }
-            this.getComments(pagination, floorComment);
-            this.getTotal();
-          })
-          .catch((error) => {
-            this.$message({
-              message: error.message,
-              type: "error"
-            });
+          this.getComments(this.pagination);
+          this.getTotal();
+        })
+        .catch((error) => {
+          this.$message({
+            message: error.message,
+            type: "error"
           });
-        this.handleClose();
-      },
-      replyDialog(comment, floorComment) {
-        this.replyComment = comment;
-        this.floorComment = floorComment;
-        this.replyDialogVisible = true;
-      },
-      handleClose() {
-        this.replyDialogVisible = false;
-        this.floorComment = {};
-        this.replyComment = {};
+        });
+    },
+    submitReply(content) {
+      let comment = {
+        source: this.source,
+        type: this.type,
+        content: content,
+        commentId: this.original.id,
+        parentId: this.parent ? this.parent.id : 0,
+      };
+
+      let currentComment = {}
+      for(let c of this.comments) {
+        if(c.id === this.original.id) {
+          currentComment = c;
+        }
+      }
+
+      this.$http.post(this.$constant.baseURL + "/web/comment", comment)
+        .then((res) => {
+          this.pagination.commentId = currentComment.id
+          this.getComments(this.pagination, currentComment);
+          console.log(currentComment.comments)
+          this.getTotal();
+        })
+        .catch((error) => {
+          this.$message({
+            message: error.message,
+            type: "error"
+          });
+        });
+      this.handleClose();
+    },
+    replyDialog(comment, parent = null) {
+      this.original = comment;
+      this.parent = parent;
+      this.replyDialogVisible = true;
+    },
+    handleClose() {
+      this.replyDialogVisible = false;
+      this.original = {};
+      this.parent = {};
+    },
+    clearPagination() {
+      this.pagination = {
+        page: 1,
+        size: 5,
+        total: 0,
+        source: this.source,
+        type: this.type,
+        commentId: 0,
+        include: ["member", "parent", "children"]
       }
     }
   }
+}
 </script>
 
 <style scoped>
 
-  .comment-head {
-    display: flex;
-    align-items: center;
-    font-size: 20px;
-    font-weight: bold;
-    margin: 40px 0 20px 0;
-    user-select: none;
-    color: var(--themeBackground);
-  }
+.comment-head {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 40px 0 20px 0;
+  user-select: none;
+  color: var(--themeBackground);
+}
 
-  .commentInfo-title {
-    margin-bottom: 20px;
-    color: var(--greyFont);
-    user-select: none;
-  }
+.commentInfo-title {
+  margin-bottom: 20px;
+  color: var(--greyFont);
+  user-select: none;
+}
 
-  .commentInfo-detail {
-    display: flex;
-  }
+.commentInfo-detail {
+  display: flex;
+}
 
-  .commentInfo-avatar {
-    border-radius: 5px;
-  }
+.commentInfo-avatar {
+  border-radius: 5px;
+}
 
-  .commentInfo-username {
-    color: var(--orangeRed);
-    font-size: 16px;
-    font-weight: 600;
-    margin-right: 5px;
-  }
+.commentInfo-username {
+  color: var(--orangeRed);
+  font-size: 16px;
+  font-weight: 600;
+  margin-right: 5px;
+}
 
-  .commentInfo-username-small {
-    color: var(--orangeRed);
-    font-size: 14px;
-    font-weight: 600;
-    margin-right: 5px;
-  }
+.commentInfo-username-small {
+  color: var(--orangeRed);
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 5px;
+}
 
-  .commentInfo-master {
-    color: var(--green);
-    border: 1px solid var(--green);
-    border-radius: 0.2rem;
-    font-size: 12px;
-    padding: 2px 4px;
-    margin-right: 5px;
-  }
+.commentInfo-master {
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 0.2rem;
+  font-size: 12px;
+  padding: 2px 4px;
+  margin-right: 5px;
+}
 
-  .commentInfo-other {
-    font-size: 12px;
-    color: var(--greyFont);
-    user-select: none;
-  }
+.commentInfo-other {
+  font-size: 12px;
+  color: var(--greyFont);
+  user-select: none;
+}
 
-  .commentInfo-reply {
-    font-size: 12px;
-    cursor: pointer;
-    user-select: none;
-    color: var(--white);
-    background: var(--themeBackground);
-    border-radius: 0.2rem;
-    padding: 3px 6px;
-  }
+.commentInfo-reply {
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--white);
+  background: var(--themeBackground);
+  border-radius: 0.2rem;
+  padding: 3px 6px;
+}
 
-  .commentInfo-content {
-    margin: 15px 0 25px;
-    padding: 18px 20px;
-    background: var(--commentContent);
-    border-radius: 12px;
-    color: var(--black);
-    word-break: break-word;
-  }
+.commentInfo-content {
+  margin: 15px 0 25px;
+  padding: 18px 20px;
+  background: var(--content);
+  border-radius: 12px;
+  color: var(--black);
+  word-break: break-word;
+}
 
-  .pagination-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-  }
+.pagination-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
 
-  .pagination {
-    padding: 6px 20px;
-    border: 1px solid var(--lightGray);
-    border-radius: 3rem;
-    color: var(--greyFont);
-    user-select: none;
-    cursor: pointer;
-    text-align: center;
-    font-size: 12px;
-  }
+.pagination {
+  padding: 6px 20px;
+  border: 1px solid var(--lightGray);
+  border-radius: 3rem;
+  color: var(--greyFont);
+  user-select: none;
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+}
 
-  .pagination:hover {
-    border: 1px solid var(--themeBackground);
-    color: var(--themeBackground);
-    box-shadow: 0 0 5px var(--themeBackground);
-  }
+.pagination:hover {
+  border: 1px solid var(--themeBackground);
+  color: var(--themeBackground);
+  box-shadow: 0 0 5px var(--themeBackground);
+}
 </style>

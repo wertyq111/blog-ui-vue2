@@ -152,7 +152,7 @@
 
         <!-- 评论 -->
         <div v-if="article.commentStatus === true">
-          <comment :type="'article'" :source="article.id" :userId="article.userId"></comment>
+          <comment :type="'article'" :source="article.id" :member="article.member"></comment>
         </div>
       </div>
 

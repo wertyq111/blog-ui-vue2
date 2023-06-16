@@ -178,7 +178,6 @@
           .then((res) => {
             if (!this.$common.isEmpty(res)) {
               this.admires = res;
-              console.log(this.admires[0].avatar)
             }
           })
           .catch((error) => {

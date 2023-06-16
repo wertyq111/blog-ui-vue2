@@ -70,7 +70,7 @@
             >{{role.name}}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="注册时间" align="center"></el-table-column>
+        <el-table-column prop="createdAt" label="注册时间" align="center"></el-table-column>
       </el-table>
       <div class="pagination">
         <el-pagination background layout="total, prev, pager, next"
@@ -148,13 +148,15 @@
           total: 0,
           searchKey: "",
           status: null,
-          roleId: null
+          roleId: null,
+          include:["member", "role"]
         }
         this.getUsers();
       },
       getUsers() {
         this.$http.get(this.$constant.baseURL + "/users/list", this.pagination, true)
           .then((res) => {
+            console.log(res)
             if (!this.$common.isEmpty(res.data)) {
               this.users = res.data;
               this.pagination.total = res.meta.total;
