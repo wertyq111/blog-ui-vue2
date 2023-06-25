@@ -175,7 +175,6 @@
         this.showAdmireDialog = true;
       },
       getAdmire() {
-        console.log(this.$constant.baseURL + "/web-members/admires")
         this.$http.get(this.$constant.baseURL + "/web-members/admires")
           .then((res) => {
             if (!this.$common.isEmpty(res)) {

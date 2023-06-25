@@ -65,7 +65,6 @@ export default new Vuex.Store({
     },
     loadCurrentMember(state, member) {
       state.currentMember = member;
-      console.log(state.currentMember)
     },
     loadWebInfo(state, webInfo) {
       webInfo.webTitle = webInfo.webTitle.split('');

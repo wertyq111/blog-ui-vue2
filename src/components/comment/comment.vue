@@ -7,7 +7,7 @@
       </div>
       <div>
         <!-- 文字评论 -->
-        <div v-show="!isGraffiti">
+        <div v-show="!isGraffiti && !$common.isEmpty($store.state.currentMember)">
           <commentBox @showGraffiti="isGraffiti = !isGraffiti"
                       @submitComment="submitComment">
           </commentBox>
@@ -222,7 +222,7 @@ export default {
       });
     },
     getComments(pagination, children = {}, isToPage = false) {
-      this.$http.get(this.$constant.baseURL + "/web/comments", pagination)
+      this.$http.get(this.$constant.baseURL + "/web-comments", pagination)
         .then((res) => {
           if (!this.$common.isEmpty(res) && !this.$common.isEmpty(res.data)) {
             if (this.$common.isEmpty(children)) {
