@@ -69,7 +69,27 @@ export default {
       let index = word.indexOf(",");
       if (index > -1) {
         let arr = word.replace("<", "").replace(">", "").split(",");
-        return '<img style="border-radius: 5px;width: 100%;max-width: 250px;display: block" src="' + arr[1] + '" title="' + arr[0] + '"/>';
+        return '<a target="_blank" href="' + arr[1] + '"> <img style="border-radius: 5px;width: 100%;max-width: 250px;display: block" src="' + arr[1] + '" title="' + arr[0] + '"></a>';
+      } else {
+        return word;
+      }
+    });
+    return content;
+  },
+
+  /**
+   * 图片添加图片地址跳转
+   *
+   * @param content
+   * @returns {*}
+   */
+  addPictureUrl(content) {
+    content = content.replace(/\<img(.+)\>/g, (word) => {
+      let index = word.indexOf("src");
+      if (index > -1) {
+        let arr = word.match(/src="(.*)"(.+)alt/);
+        let imgUrl = arr[1].trim();
+        return '<a target="_blank" href="' + imgUrl + '"> <img src="' + imgUrl + '"></a>';
       } else {
         return word;
       }

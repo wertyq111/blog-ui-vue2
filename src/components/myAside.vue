@@ -139,7 +139,8 @@
         pagination: {
           current: 1,
           size: 5,
-          recommendStatus: true
+          recommendStatus: true,
+          include:["member"]
         },
         recommendArticles: [],
         admires: [],
@@ -174,6 +175,7 @@
         this.showAdmireDialog = true;
       },
       getAdmire() {
+        console.log(this.$constant.baseURL + "/web-members/admires")
         this.$http.get(this.$constant.baseURL + "/web-members/admires")
           .then((res) => {
             if (!this.$common.isEmpty(res)) {

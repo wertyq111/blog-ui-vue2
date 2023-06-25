@@ -233,8 +233,8 @@
           cancelButtonText: '取消',
           type: 'success',
           center: true
-        }).then(() => {
-          this.$http.get(this.$constant.baseURL + "/weiYan/deleteWeiYan", {id: id})
+        }).then(() => {wei
+          this.$http.delete(this.$constant.baseURL + "/wei-yan/" + id)
             .then((res) => {
               this.$message({
                 type: 'success',
@@ -262,7 +262,7 @@
           source: this.article.id
         };
 
-        this.$http.post(this.$constant.baseURL + "/weiYan/saveNews", weiYan)
+        this.$http.post(this.$constant.baseURL + "/wei-yan/", weiYan)
           .then((res) => {
             this.weiYanDialogVisible = false;
             this.newsTime = "";
@@ -276,7 +276,7 @@
           });
       },
       getNews() {
-        this.$http.post(this.$constant.baseURL + "/weiYan/listNews", {
+        this.$http.post(this.$constant.baseURL + "/wei-yan/list", {
           current: 1,
           size: 9999,
           source: this.article.id
@@ -342,6 +342,7 @@
               this.getNews();
               const md = new MarkdownIt({breaks: true});
               this.articleContentHtml = md.render(this.article.content);
+              this.articleContentHtml = this.$common.addPictureUrl(this.articleContentHtml);
               this.$nextTick(() => {
                 this.highlight();
                 this.addId();
